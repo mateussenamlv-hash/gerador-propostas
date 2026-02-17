@@ -42,8 +42,8 @@ def gerar_pdf():
         imagem = request.files.get("imagem")
 
         if imagem and imagem.filename != "":
-            # ALTERAÇÃO: controla a ALTURA para não estourar página e manter proporção
-            imagem_template = InlineImage(doc, imagem, height=Mm(65))
+            # Ajuste fino: um pouco menor que 65mm
+            imagem_template = InlineImage(doc, imagem, height=Mm(63))
         else:
             imagem_template = ""
 

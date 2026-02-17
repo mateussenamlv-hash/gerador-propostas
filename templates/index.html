@@ -1,16 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gerador de Propostas</title>
+    <style>
+        body {
+            background-color: #000;
+            color: white;
+            font-family: Arial;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        img {
+            width: 250px;
+            margin-top: 40px;
+            margin-bottom: 30px;
+        }
+
+        .container {
+            width: 350px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #00aaff;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0088cc;
+        }
+    </style>
+</head>
+<body>
+
+<img src="{{ url_for('static', filename='logo.png') }}">
+
+<div class="container">
 <form action="/gerar-pdf" method="POST" enctype="multipart/form-data">
 
-<input type="text" name="cliente" placeholder="Cliente">
-<input type="text" name="cpf" placeholder="CPF">
-<input type="text" name="modelo" placeholder="Modelo da Impressora">
-<input type="text" name="franquia" placeholder="Franquia">
-<input type="text" name="contrato" placeholder="Contrato">
-<input type="text" name="excedente" placeholder="Excedente">
-<input type="text" name="valor" placeholder="Valor">
-<input type="text" name="validade" placeholder="Validade">
+<input type="text" name="cliente" placeholder="Cliente" required>
+<input type="text" name="cpf" placeholder="CPF" required>
+<input type="text" name="modelo" placeholder="Modelo da Impressora" required>
+<input type="text" name="franquia" placeholder="Franquia" required>
+<input type="text" name="contrato" placeholder="Tempo de Contrato" required>
+<input type="text" name="excedente" placeholder="Valor Excedente" required>
+<input type="text" name="valor" placeholder="Valor Mensal" required>
+<input type="text" name="validade" placeholder="Validade da Proposta" required>
 
 <input type="file" name="imagem">
 
-<button type="submit">Gerar PDF</button>
+<button type="submit">GERAR PDF</button>
 
 </form>
+</div>
+
+</body>
+</html>

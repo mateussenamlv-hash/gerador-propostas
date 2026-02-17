@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 # Caminho correto do projeto
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_PATH = os.path.join(BASE_DIR, "templates", "templet.docx")
+TEMPLATE_PATH = os.path.join(BASE_DIR, "templates", "template.docx")
 
 # Página inicial (teste)
 @app.route("/")

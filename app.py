@@ -5,37 +5,32 @@ import os
 
 app = Flask(__name__)
 
-TEMPLATE = "template.docx"
-OUTPUT = "proposta.pdf"
+# Caminho correto do projeto
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATE_PATH = os.path.join(BASE_DIR, "templates", "templet.doc")
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    if request.method == "POST":
-        doc = Document(TEMPLATE)
+# Página inicial (teste)
+@app.route("/")
+def home():
+    return "Servidor online"
 
-        dados = {
-            "{{CLIENTE}}": request.form["cliente"],
-            "{{CPF}}": request.form["cpf"],
-            "{{MODELO}}": request.form["modelo"],
-            "{{FRANQUIA}}": request.form["franquia"],
-            "{{CONTRATO}}": request.form["contrato"],
-            "{{EXCEDENTE}}": request.form["excedente"],
-            "{{VALOR}}": request.form["valor"],
-            "{{VALIDADE}}": request.form["validade"],
-            "{{DATA}}": datetime.now().strftime("%d/%m/%Y"),
-        }
+# Exemplo de rota para gerar documento
+@app.route("/gerar", methods=["POST"])
+def gerar_documento():
+    nome = request.form.get("nome", "Cliente")
 
-        for p in doc.paragraphs:
-            for chave, valor in dados.items():
-                if chave in p.text:
-                    p.text = p.text.replace(chave, valor)
+    doc = Document(TEMPLATE_PATH)
 
-        doc.save("temp.docx")
+    for p in doc.paragraphs:
+        if "{{NOME}}" in p.text:
+            p.text = p.text.replace("{{NOME}}", nome)
 
-        os.system("soffice --headless --convert-to pdf temp.docx --outdir .")
+    output_path = os.path.join(BASE_DIR, "proposta.docx")
+    doc.save(output_path)
 
-        return send_file("temp.pdf", as_attachment=True)
+    return send_file(output_path, as_attachment=True)
 
-    return render_template("index.html")
-
-app.run(host="0.0.0.0", port=8080)
+# ESSA PARTE É O QUE FAZ FUNCIONAR NO RAILWAY
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

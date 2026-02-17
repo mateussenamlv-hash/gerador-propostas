@@ -32,7 +32,8 @@ def index():
 
         doc.save("temp.docx")
 
-        os.system("libreoffice --headless --convert-to pdf temp.docx")
+        os.system("soffice --headless --convert-to pdf temp.docx --outdir .")
+
         return send_file("temp.pdf", as_attachment=True)
 
     return render_template("index.html")

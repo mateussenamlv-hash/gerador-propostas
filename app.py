@@ -30,7 +30,13 @@ def gerar_pdf():
         valor = request.form.get("valor")
         validade = request.form.get("validade")
 
-        data_atual = datetime.now().strftime("%d/%m/%Y")
+        # ===== DATA ATUAL (FORMATO: 17 de Fevereiro de 2026) =====
+        agora = datetime.now()
+        meses = [
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        ]
+        data_atual = f"{agora.day} de {meses[agora.month - 1]} de {agora.year}"
 
         # ===== IMAGEM OPCIONAL =====
         imagem = request.files.get("imagem")

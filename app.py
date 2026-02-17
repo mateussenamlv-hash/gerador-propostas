@@ -4,13 +4,12 @@ from docx.shared import Mm
 import os
 import subprocess
 from datetime import datetime
+import uuid
 
 app = Flask(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(BASE_DIR, "template.docx")
-OUTPUT_DOCX = os.path.join(BASE_DIR, "contrato_gerado.docx")
-OUTPUT_PDF = os.path.join(BASE_DIR, "contrato_gerado.pdf")
 
 
 @app.route("/")
@@ -20,53 +19,61 @@ def home():
 
 @app.route("/gerar-pdf", methods=["POST"])
 def gerar_pdf():
+    try:
+        doc = DocxTemplate(TEMPLATE_PATH)
 
-    doc = DocxTemplate(TEMPLATE_PATH)
+        cliente = request.form.get("cliente")
+        cpf = request.form.get("cpf")
+        modelo = request.form.get("modelo")
+        franquia = request.form.get("franquia")
+        contrato = request.form.get("contrato")
+        excedente = request.form.get("excedente")
+        valor = request.form.get("valor")
+        validade = request.form.get("validade")
 
-    cliente = request.form.get("cliente")
-    cpf = request.form.get("cpf")
-    modelo = request.form.get("modelo")
-    franquia = request.form.get("franquia")
-    contrato = request.form.get("contrato")
-    excedente = request.form.get("excedente")
-    valor = request.form.get("valor")
-    validade = request.form.get("validade")
+        data_atual = datetime.now().strftime("%d/%m/%Y")
 
-    data_atual = datetime.now().strftime("%d/%m/%Y")
+        imagem = request.files.get("imagem")
 
-    imagem = request.files.get("imagem")
+        if imagem and imagem.filename != "":
+            imagem_template = InlineImage(doc, imagem, width=Mm(50))
+        else:
+            imagem_template = ""
 
-    if imagem and imagem.filename != "":
-        imagem_template = InlineImage(doc, imagem, width=Mm(50))
-    else:
-        imagem_template = ""
+        context = {
+            "CLIENTE": cliente,
+            "CPF": cpf,
+            "MODELO": modelo,
+            "FRANQUIA": franquia,
+            "CONTRATO": contrato,
+            "EXCEDENTE": excedente,
+            "VALOR": valor,
+            "VALIDADE": validade,
+            "DATA": data_atual,
+            "IMAGEM": imagem_template,
+        }
 
-    context = {
-        "CLIENTE": cliente,
-        "CPF": cpf,
-        "MODELO": modelo,
-        "FRANQUIA": franquia,
-        "CONTRATO": contrato,
-        "EXCEDENTE": excedente,
-        "VALOR": valor,
-        "VALIDADE": validade,
-        "DATA": data_atual,
-        "IMAGEM": imagem_template,
-    }
+        doc.render(context)
 
-    doc.render(context)
-    doc.save(OUTPUT_DOCX)
+        unique_id = str(uuid.uuid4())
+        docx_path = os.path.join(BASE_DIR, f"{unique_id}.docx")
 
-    # 🔥 CONVERSÃO VIA LIBREOFFICE
-    subprocess.run([
-        "libreoffice",
-        "--headless",
-        "--convert-to", "pdf",
-        OUTPUT_DOCX,
-        "--outdir", BASE_DIR
-    ])
+        doc.save(docx_path)
 
-    return send_file(OUTPUT_PDF, as_attachment=True)
+        subprocess.run([
+            "libreoffice",
+            "--headless",
+            "--convert-to", "pdf",
+            docx_path,
+            "--outdir", BASE_DIR
+        ], check=True)
+
+        pdf_path = docx_path.replace(".docx", ".pdf")
+
+        return send_file(pdf_path, as_attachment=True)
+
+    except Exception as e:
+        return f"Erro interno: {str(e)}"
 
 
 if __name__ == "__main__":

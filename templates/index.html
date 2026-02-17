@@ -1,32 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Gerador de Propostas</title>
+  <title>Sistema</title>
   <style>
-    body { background:#000; color:white; font-family:Arial; padding:40px; }
-    input,button { padding:10px; margin:5px; width:100%; }
-    button { background:#0a84ff; color:white; border:none; cursor:pointer; }
+    body { background:#000; color:white; font-family:Arial; padding:40px; text-align:center; }
+    a { text-decoration:none; }
+    button {
+      padding:20px;
+      margin:20px;
+      width:260px;
+      font-size:18px;
+      background:#0a84ff;
+      color:white;
+      border:none;
+      cursor:pointer;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Gerador de Propostas</h1>
+  <h1>Sistema de Documentos</h1>
 
-  <form method="post" action="/gerar-pdf" enctype="multipart/form-data">
-    <input name="cliente" placeholder="Cliente" required>
-    <input name="cpf" placeholder="CPF" required>
-    <input name="modelo" placeholder="Modelo" required>
-    <input name="franquia" placeholder="Franquia" required>
-
-    <!-- Removidos: contrato e excedente (agora são fixos no backend) -->
-
-    <input name="valor" placeholder="Valor" required>
-    <input name="validade" placeholder="Validade" required>
-
-    <input type="file" name="imagem" accept="image/*">
-
-    <button type="submit">GERAR PDF</button>
-  </form>
+  <a href="/proposta"><button>CRIAR PROPOSTA</button></a>
+  <a href="/contrato"><button>CRIAR CONTRATO</button></a>
 
 </body>
 </html>

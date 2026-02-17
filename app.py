@@ -1,15 +1,17 @@
 from flask import Flask, render_template, request, send_file
-from docxtpl import DocxTemplate, InlineImage
-from docx.shared import Mm
-import os
-import subprocess
+from docx import Document
 from datetime import datetime
-import uuid
+import os
 
 app = Flask(__name__)
 
+# Caminho correto do projeto
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_PATH = os.path.join(BASE_DIR, "template.docx")
+TEMPLATE_PATH = os.path.join(BASE_DIR, "templates", "template.docx")
+
+# Valores fixos (não aparecem no formulário)
+CONTRATO_FIXO = "36 meses"
+EXCEDENTE_FIXO = "R$ 0,10 por página"
 
 
 @app.route("/")
@@ -19,77 +21,35 @@ def home():
 
 @app.route("/gerar-pdf", methods=["POST"])
 def gerar_pdf():
-    try:
-        doc = DocxTemplate(TEMPLATE_PATH)
+    # Pega dados do formulário (sem contrato e excedente)
+    dados = {
+        "cliente": request.form.get("cliente", ""),
+        "cpf": request.form.get("cpf", ""),
+        "modelo": request.form.get("modelo", ""),
+        "franquia": request.form.get("franquia", ""),
+        "contrato": CONTRATO_FIXO,
+        "excedente": EXCEDENTE_FIXO,
+        "valor": request.form.get("valor", ""),
+        "validade": request.form.get("validade", ""),
+        "data": datetime.now().strftime("%d/%m/%Y"),
+    }
 
-        # ===== PEGAR DADOS DO FORM =====
-        cliente = request.form.get("cliente")
-        cpf = request.form.get("cpf")
-        modelo = request.form.get("modelo")
-        franquia = request.form.get("franquia")
-        contrato = request.form.get("contrato")
-        excedente = request.form.get("excedente")
-        valor = request.form.get("valor")
-        validade = request.form.get("validade")
+    # Abre o template
+    doc = Document(TEMPLATE_PATH)
 
-        data_atual = datetime.now().strftime("%d/%m/%Y")
+    # Substitui placeholders ({{ CLIENTE }}, etc.)
+    for p in doc.paragraphs:
+        for chave, valor in dados.items():
+            p.text = p.text.replace(f"{{{{ {chave.upper()} }}}}", str(valor))
 
-        # ===== IMAGEM OPCIONAL =====
-        imagem = request.files.get("imagem")
+    # Salva arquivo final
+    output_path = os.path.join(BASE_DIR, "proposta.docx")
+    doc.save(output_path)
 
-        if imagem and imagem.filename != "":
-            imagem_template = InlineImage(doc, imagem, width=Mm(50))
-        else:
-            imagem_template = ""
-
-        # ===== CONTEXTO PARA O TEMPLATE =====
-        context = {
-            "CLIENTE": cliente,
-            "CPF": cpf,
-            "MODELO": modelo,
-            "FRANQUIA": franquia,
-            "CONTRATO": contrato,
-            "EXCEDENTE": excedente,
-            "VALOR": valor,
-            "VALIDADE": validade,
-            "DATA": data_atual,
-            "IMAGEM": imagem_template,
-        }
-
-        doc.render(context)
-
-        # ===== SALVAR DOCX TEMPORÁRIO =====
-        unique_id = str(uuid.uuid4())
-        docx_path = os.path.join(BASE_DIR, f"{unique_id}.docx")
-        doc.save(docx_path)
-
-        # ===== CONVERTER PARA PDF (LIBREOFFICE) =====
-        subprocess.run(
-            [
-                "libreoffice",
-                "--headless",
-                "--convert-to", "pdf",
-                docx_path,
-                "--outdir", BASE_DIR,
-            ],
-            check=True,
-        )
-
-        pdf_path = docx_path.replace(".docx", ".pdf")
-
-        # ===== NOME PERSONALIZADO DO PDF =====
-        nome_cliente = cliente.replace(" ", "_")
-        nome_final = f"Proposta_{nome_cliente}.pdf"
-
-        return send_file(
-            pdf_path,
-            as_attachment=True,
-            download_name=nome_final
-        )
-
-    except Exception as e:
-        return f"Erro interno: {str(e)}"
+    # Retorna o arquivo gerado (mantendo seu comportamento atual)
+    return send_file(output_path, as_attachment=True)
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

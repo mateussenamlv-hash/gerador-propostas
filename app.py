@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, send_file
 from docxtpl import DocxTemplate, InlineImage
 from docx.shared import Mm
-from docx2pdf import convert
 import os
+import subprocess
 from datetime import datetime
 
 app = Flask(__name__)
@@ -23,10 +23,6 @@ def gerar_pdf():
 
     doc = DocxTemplate(TEMPLATE_PATH)
 
-    # ==============================
-    # PEGANDO DADOS DO FORMULÁRIO
-    # ==============================
-
     cliente = request.form.get("cliente")
     cpf = request.form.get("cpf")
     modelo = request.form.get("modelo")
@@ -38,20 +34,12 @@ def gerar_pdf():
 
     data_atual = datetime.now().strftime("%d/%m/%Y")
 
-    # ==============================
-    # IMAGEM
-    # ==============================
-
     imagem = request.files.get("imagem")
 
     if imagem and imagem.filename != "":
         imagem_template = InlineImage(doc, imagem, width=Mm(50))
     else:
         imagem_template = ""
-
-    # ==============================
-    # CONTEXTO PARA O WORD
-    # ==============================
 
     context = {
         "CLIENTE": cliente,
@@ -66,15 +54,20 @@ def gerar_pdf():
         "IMAGEM": imagem_template,
     }
 
-    # Renderiza o template
     doc.render(context)
     doc.save(OUTPUT_DOCX)
 
-    # Converte para PDF
-    convert(OUTPUT_DOCX, OUTPUT_PDF)
+    # 🔥 CONVERSÃO VIA LIBREOFFICE
+    subprocess.run([
+        "libreoffice",
+        "--headless",
+        "--convert-to", "pdf",
+        OUTPUT_DOCX,
+        "--outdir", BASE_DIR
+    ])
 
     return send_file(OUTPUT_PDF, as_attachment=True)
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=8080)

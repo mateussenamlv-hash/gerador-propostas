@@ -42,7 +42,7 @@ def gerar_pdf():
         imagem = request.files.get("imagem")
 
         if imagem and imagem.filename != "":
-            imagem_template = InlineImage(doc, imagem, width=Mm(50))
+            imagem_template = InlineImage(doc, imagem, width=Mm(150))
         else:
             imagem_template = ""
 

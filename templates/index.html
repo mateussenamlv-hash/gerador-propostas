@@ -1,34 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Gerador de Propostas</title>
-<style>
-body { background:#000; color:white; font-family:Arial; padding:40px; }
-input,button { padding:10px; margin:5px; width:100%; }
-button { background:#0a84ff; color:white; border:none; }
-</style>
-</head>
-<body>
+<form action="/gerar-pdf" method="POST" enctype="multipart/form-data">
 
-<h1>Gerador de Propostas</h1>
+<input type="text" name="cliente" placeholder="Cliente">
+<input type="text" name="cpf" placeholder="CPF">
+<input type="text" name="modelo" placeholder="Modelo da Impressora">
+<input type="text" name="franquia" placeholder="Franquia">
+<input type="text" name="contrato" placeholder="Contrato">
+<input type="text" name="excedente" placeholder="Excedente">
+<input type="text" name="valor" placeholder="Valor">
+<input type="text" name="validade" placeholder="Validade">
 
-<form method="post" action="/gerar-pdf" enctype="multipart/form-data">
-
-<input name="cliente" placeholder="Cliente" required>
-<input name="cpf" placeholder="CPF">
-<input name="modelo" placeholder="Modelo da Impressora">
-<input name="franquia" placeholder="Franquia">
-<input name="contrato" placeholder="Contrato">
-<input name="excedente" placeholder="Excedente">
-<input name="valor" placeholder="Valor">
-<input name="validade" placeholder="Validade">
-
-<label>Imagem da impressora:</label>
-<input type="file" name="imagem" accept="image/*">
+<input type="file" name="imagem">
 
 <button type="submit">Gerar PDF</button>
 
 </form>
-
-</body>
-</html>

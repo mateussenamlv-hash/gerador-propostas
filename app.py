@@ -12,23 +12,34 @@ TEMPLATE_PATH = os.path.join(BASE_DIR, "templates", "templet.doc")
 # Página inicial (teste)
 @app.route("/")
 def home():
-    return "Servidor online"
+    return render_template("index.html")
 
-# Exemplo de rota para gerar documento
-@app.route("/gerar", methods=["POST"])
-def gerar_documento():
-    nome = request.form.get("nome", "Cliente")
+
+@app.route("/gerar-pdf", methods=["POST"])
+def gerar_pdf():
+    dados = {
+        "cliente": request.form["cliente"],
+        "cpf": request.form["cpf"],
+        "modelo": request.form["modelo"],
+        "franquia": request.form["franquia"],
+        "contrato": request.form["contrato"],
+        "excedente": request.form["excedente"],
+        "valor": request.form["valor"],
+        "validade": request.form["validade"],
+        "data": datetime.now().strftime("%d/%m/%Y")
+    }
 
     doc = Document(TEMPLATE_PATH)
 
     for p in doc.paragraphs:
-        if "{{NOME}}" in p.text:
-            p.text = p.text.replace("{{NOME}}", nome)
+        for chave, valor in dados.items():
+            p.text = p.text.replace(f"{{{{{chave.upper()}}}}}", valor)
 
     output_path = os.path.join(BASE_DIR, "proposta.docx")
     doc.save(output_path)
 
     return send_file(output_path, as_attachment=True)
+
 
 # ESSA PARTE É O QUE FAZ FUNCIONAR NO RAILWAY
 if __name__ == "__main__":

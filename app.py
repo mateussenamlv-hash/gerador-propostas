@@ -70,7 +70,15 @@ def gerar_pdf():
 
         pdf_path = docx_path.replace(".docx", ".pdf")
 
-        return send_file(pdf_path, as_attachment=True)
+nome_cliente = cliente.replace(" ", "_")
+nome_final = f"Proposta_{nome_cliente}.pdf"
+
+return send_file(
+    pdf_path,
+    as_attachment=True,
+    download_name=nome_final
+)
+
 
     except Exception as e:
         return f"Erro interno: {str(e)}"

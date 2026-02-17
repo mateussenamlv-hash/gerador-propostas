@@ -65,7 +65,6 @@ def numero_por_extenso_pt(n: int) -> str:
                     parts.append(f"{dezenas[d]} e {unidades[u]}")
                 else:
                     parts.append(dezenas[d])
-        # junta com " e " quando necessário entre centenas e resto (se não veio no próprio)
         if len(parts) == 2 and (" e " not in parts[1]):
             return f"{parts[0]} e {parts[1]}"
         return " ".join(parts)
@@ -97,16 +96,12 @@ def numero_por_extenso_pt(n: int) -> str:
     if resto:
         partes.append(ext_ate_999(resto))
 
-    # regra do "e" entre o último grupo e o resto quando apropriado
     resultado = ""
     for i, p in enumerate(partes):
         if resultado == "":
             resultado = p
         else:
-            # usa " e " antes do último bloco quando o bloco final for < 100 (ou for exatamente 100)
             if i == len(partes) - 1:
-                # tenta inferir o valor do último bloco para decidir "e"
-                # (boa o suficiente para nosso caso)
                 if resto and resto < 100:
                     resultado = f"{resultado} e {p}"
                 else:
@@ -117,14 +112,20 @@ def numero_por_extenso_pt(n: int) -> str:
 
 
 def parse_money(valor_str: str) -> Decimal:
-    """Aceita '200', '200,00', '200.00', 'R$ 200,00'."""
+    """Aceita '250', '250,00', '250.00', 'R$ 250,00'."""
     s = (valor_str or "").strip()
     s = s.replace("R$", "").replace(" ", "")
-    # se vier 1.234,56 -> remove pontos de milhar
     if "," in s:
         s = s.replace(".", "")
         s = s.replace(",", ".")
     return Decimal(s)
+
+
+def format_money_ptbr(valor: Decimal) -> str:
+    """200.00 -> '200,00'"""
+    valor = valor.quantize(Decimal("0.01"))
+    s = f"{valor:.2f}"
+    return s.replace(".", ",")
 
 
 def dinheiro_por_extenso(valor: Decimal) -> str:
@@ -134,27 +135,14 @@ def dinheiro_por_extenso(valor: Decimal) -> str:
     centavos = int((valor - Decimal(reais)) * 100)
 
     texto_reais = numero_por_extenso_pt(reais)
-    if reais == 1:
-        moeda = "real"
-    else:
-        moeda = "reais"
+    moeda = "real" if reais == 1 else "reais"
 
     if centavos == 0:
         return f"{texto_reais} {moeda}"
 
     texto_cent = numero_por_extenso_pt(centavos)
-    if centavos == 1:
-        cent = "centavo"
-    else:
-        cent = "centavos"
+    cent = "centavo" if centavos == 1 else "centavos"
     return f"{texto_reais} {moeda} e {texto_cent} {cent}"
-
-
-def format_money_ptbr(valor: Decimal) -> str:
-    """200.00 -> '200,00'"""
-    valor = valor.quantize(Decimal("0.01"))
-    s = f"{valor:.2f}"
-    return s.replace(".", ",")
 
 
 def hoje_por_extenso() -> str:
@@ -189,14 +177,32 @@ def gerar_pdf():
         cpf = request.form.get("cpf")
         modelo = request.form.get("modelo")
         franquia = request.form.get("franquia")
-        valor = request.form.get("valor")
+        valor_input = request.form.get("valor")
         validade = request.form.get("validade")
 
         data_atual = hoje_por_extenso()
 
+        # ===== 2ª MUDANÇA: VALOR FORMATADO + EXTENSO =====
+        valor_dec = parse_money(valor_input)
+        valor_formatado = format_money_ptbr(valor_dec)
+
+        # Você pediu: "250,00 (duzentos e cinquenta)" -> sem "reais"
+        valor_reais_int = int(valor_dec.quantize(Decimal("0.01")))
+        centavos = int((valor_dec.quantize(Decimal("0.01")) - Decimal(valor_reais_int)) * 100)
+
+        if centavos == 0:
+            valor_extenso = numero_por_extenso_pt(valor_reais_int)
+        else:
+            # se tiver centavos, mantém por extenso completo (com reais/centavos)
+            valor_extenso = dinheiro_por_extenso(valor_dec)
+
+        valor_final = f"{valor_formatado} ({valor_extenso})"
+
+        # ===== 1ª MUDANÇA: IMAGEM MENOR (para não ir pra 2 páginas) =====
         imagem = request.files.get("imagem")
         if imagem and imagem.filename != "":
-            imagem_template = InlineImage(doc, imagem, height=Mm(63))
+            # antes estava 63mm e ainda quebrava página; agora reduzimos bem
+            imagem_template = InlineImage(doc, imagem, height=Mm(45))
         else:
             imagem_template = ""
 
@@ -205,7 +211,7 @@ def gerar_pdf():
             "CPF": cpf,
             "MODELO": modelo,
             "FRANQUIA": franquia,
-            "VALOR": valor,
+            "VALOR": valor_final,       # <- aqui entra o "250,00 (duzentos e cinquenta)"
             "VALIDADE": validade,
             "DATA": data_atual,
             "IMAGEM": imagem_template,
@@ -229,6 +235,8 @@ def gerar_pdf():
 
         return send_file(pdf_path, as_attachment=True, download_name=nome_final)
 
+    except (InvalidOperation, ValueError):
+        return "Erro: confira o campo VALOR (ex: 250 ou 250,00)."
     except Exception as e:
         return f"Erro interno: {str(e)}"
 
@@ -259,7 +267,6 @@ def gerar_contrato():
         franquia_input = request.form.get("franquia_total")   # ex: 1000
         valor_mensal_input = request.form.get("valor_mensal") # ex: 200
 
-        # ---- Conversões exigidas por você ----
         data_inicio = data_por_extenso(data_inicio_input)
         data_termino = data_por_extenso(data_termino_input)
 

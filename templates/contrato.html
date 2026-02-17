@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gerador de Contrato</title>
+  <style>
+    body { background:#000; color:white; font-family:Arial; padding:40px; }
+    input,button,textarea { padding:10px; margin:5px; width:100%; }
+    button { background:#0a84ff; color:white; border:none; cursor:pointer; }
+    textarea { height:80px; }
+  </style>
+</head>
+<body>
+
+  <h1>Gerador de Contrato</h1>
+
+  <form method="post" action="/gerar-contrato">
+    <input name="denominacao" placeholder="Denominação (Cliente / Razão Social)" required>
+    <input name="cpf_cnpj" placeholder="CPF/CNPJ" required>
+    <input name="endereco" placeholder="Endereço" required>
+    <input name="telefone" placeholder="Telefone" required>
+    <input name="email" placeholder="Email" required>
+
+    <input name="equipamento" placeholder="Equipamento (modelo/descrição)" required>
+    <textarea name="acessorios" placeholder="Acessórios que acompanham o equipamento" required></textarea>
+
+    <input name="data_inicio" placeholder="Data de início (DD/MM/AAAA)" required>
+    <input name="data_termino" placeholder="Data de término (DD/MM/AAAA)" required>
+
+    <input name="franquia_total" placeholder="Franquia total (ex: 1000)" required>
+    <input name="valor_mensal" placeholder="Valor fixo mensal (ex: 200 ou 200,00)" required>
+
+    <button type="submit">GERAR CONTRATO (PDF)</button>
+  </form>
+
+</body>
+</html>

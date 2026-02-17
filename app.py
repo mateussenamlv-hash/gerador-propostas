@@ -27,11 +27,6 @@ def gerar_pdf():
         cpf = request.form.get("cpf")
         modelo = request.form.get("modelo")
         franquia = request.form.get("franquia")
-
-        # ===== FIXOS (NÃO VÊM MAIS DO FORM) =====
-        contrato = "36 meses"
-        excedente = "R$ 0,10 por página"
-
         valor = request.form.get("valor")
         validade = request.form.get("validade")
 
@@ -51,8 +46,6 @@ def gerar_pdf():
             "CPF": cpf,
             "MODELO": modelo,
             "FRANQUIA": franquia,
-            "CONTRATO": contrato,
-            "EXCEDENTE": excedente,
             "VALOR": valor,
             "VALIDADE": validade,
             "DATA": data_atual,

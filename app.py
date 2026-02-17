@@ -1,14 +1,17 @@
 from flask import Flask, render_template, request, send_file
 from docx import Document
+from docx.shared import Inches
 from datetime import datetime
 import os
 import subprocess
 
 app = Flask(__name__)
 
-# Caminhos do projeto
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(BASE_DIR, "templates", "template.docx")
+IMAGES_DIR = os.path.join(BASE_DIR, "static", "imagens")
+
+os.makedirs(IMAGES_DIR, exist_ok=True)
 
 @app.route("/")
 def home():
@@ -31,20 +34,26 @@ def gerar_pdf():
 
     doc = Document(TEMPLATE_PATH)
 
-    # Substitui todos os textos
+    # Substituir textos
     for p in doc.paragraphs:
         for chave, valor in dados.items():
             if chave in p.text:
                 p.text = p.text.replace(chave, valor)
 
-    # Caminhos de saída
+    # Tratar imagem
+    imagem = request.files.get("imagem")
+    if imagem and imagem.filename:
+        image_path = os.path.join(IMAGES_DIR, imagem.filename)
+        imagem.save(image_path)
+
+        # Inserir imagem no final do documento
+        doc.add_picture(image_path, width=Inches(3))
+
     docx_path = os.path.join(BASE_DIR, "proposta.docx")
     pdf_path = os.path.join(BASE_DIR, "proposta.pdf")
 
-    # Salva DOCX temporário
     doc.save(docx_path)
 
-    # Converte para PDF
     subprocess.run([
         "libreoffice",
         "--headless",
@@ -56,7 +65,6 @@ def gerar_pdf():
     return send_file(pdf_path, as_attachment=True)
 
 
-# Necessário para Railway
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

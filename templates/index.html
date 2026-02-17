@@ -1,73 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Gerador de Propostas</title>
-    <style>
-        body {
-            background-color: #000;
-            color: white;
-            font-family: Arial;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        img {
-            width: 250px;
-            margin-top: 40px;
-            margin-bottom: 30px;
-        }
-
-        .container {
-            width: 350px;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border-radius: 6px;
-            border: none;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: #00aaff;
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0088cc;
-        }
-    </style>
+  <title>Gerador de Propostas</title>
+  <style>
+    body { background:#000; color:white; font-family:Arial; padding:40px; }
+    input,button { padding:10px; margin:5px; width:100%; }
+    button { background:#0a84ff; color:white; border:none; cursor:pointer; }
+  </style>
 </head>
 <body>
 
-<img src="{{ url_for('static', filename='logo.png') }}">
+  <h1>Gerador de Propostas</h1>
 
-<div class="container">
-<form action="/gerar-pdf" method="POST" enctype="multipart/form-data">
+  <form method="post" action="/gerar-pdf" enctype="multipart/form-data">
+    <input name="cliente" placeholder="Cliente" required>
+    <input name="cpf" placeholder="CPF" required>
+    <input name="modelo" placeholder="Modelo" required>
+    <input name="franquia" placeholder="Franquia" required>
 
-<input type="text" name="cliente" placeholder="Cliente" required>
-<input type="text" name="cpf" placeholder="CPF" required>
-<input type="text" name="modelo" placeholder="Modelo da Impressora" required>
-<input type="text" name="franquia" placeholder="Franquia" required>
-<input type="text" name="contrato" placeholder="Tempo de Contrato" required>
-<input type="text" name="excedente" placeholder="Valor Excedente" required>
-<input type="text" name="valor" placeholder="Valor Mensal" required>
-<input type="text" name="validade" placeholder="Validade da Proposta" required>
+    <!-- Removidos: contrato e excedente (agora são fixos no backend) -->
 
-<input type="file" name="imagem">
+    <input name="valor" placeholder="Valor" required>
+    <input name="validade" placeholder="Validade" required>
 
-<button type="submit">GERAR PDF</button>
+    <input type="file" name="imagem" accept="image/*">
 
-</form>
-</div>
+    <button type="submit">GERAR PDF</button>
+  </form>
 
 </body>
 </html>

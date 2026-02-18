@@ -3,40 +3,40 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Senasoft • Contrato</title>
+  <title>Contrato</title>
   <style>
     :root{
-      --bg:#0b0f14;
-      --bg2:#070a0f;
-      --card:#0f151d;
-      --line:#232a34;
+      --bg0:#05070b;
+      --bg2:#0a0f18;
+      --line: rgba(255,255,255,.10);
       --text:#ffffff;
-      --muted:#b7c0cc;
-      --gray:#9aa4b2;
-      --blue:#0a84ff;
+      --muted: rgba(255,255,255,.68);
+      --blue:#0a84ff; /* manter */
+      --shadow: 0 22px 60px rgba(0,0,0,.55);
+      --radius: 20px;
     }
     *{ box-sizing:border-box; }
     body{
       margin:0;
       font-family: Arial, sans-serif;
-      color:var(--text);
+      color: var(--text);
       background:
-        radial-gradient(1200px 600px at 70% 20%, rgba(10,132,255,.18), transparent 60%),
-        radial-gradient(900px 500px at 20% 30%, rgba(255,255,255,.06), transparent 55%),
-        linear-gradient(180deg, var(--bg), var(--bg2));
+        radial-gradient(1200px 700px at 75% 15%, rgba(10,132,255,.22), transparent 60%),
+        radial-gradient(900px 500px at 20% 20%, rgba(255,255,255,.06), transparent 55%),
+        linear-gradient(180deg, var(--bg2), var(--bg0));
       min-height:100vh;
     }
 
     .topbar{
       position: sticky;
-      top: 0;
+      top:0;
       z-index: 10;
-      background: rgba(7,10,15,.72);
-      backdrop-filter: blur(10px);
-      border-bottom:1px solid var(--line);
+      background: rgba(5,7,11,.58);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
     }
     .topbar-inner{
-      max-width: 1100px;
+      max-width: 980px;
       margin: 0 auto;
       padding: 14px 18px;
       display:flex;
@@ -44,99 +44,94 @@
       justify-content:space-between;
       gap:16px;
     }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      text-decoration:none;
-      color:var(--text);
+    .logo img{ height:38px; display:block; }
+    .logo{ text-decoration:none; display:flex; align-items:center; }
+
+    .nav{
+      display:flex; gap:8px; align-items:center;
     }
-    .brand img{ height:38px; width:auto; display:block; }
-    .brand-title strong{
-      display:block;
-      font-size:14px;
-      letter-spacing:.6px;
-      text-transform:uppercase;
-    }
-    .brand-title span{
-      display:block;
-      font-size:12px;
-      color:var(--muted);
-    }
-    .nav{ display:flex; gap:10px; }
     .nav a{
-      color:var(--muted);
       text-decoration:none;
-      font-size:13px;
-      padding:10px 12px;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 10px 12px;
+      border-radius: 12px;
       border:1px solid transparent;
-      border-radius:10px;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      transition: background .15s ease, border-color .15s ease, transform .12s ease, color .15s ease;
     }
     .nav a:hover{
-      border-color: var(--line);
-      background: rgba(255,255,255,.04);
       color: var(--text);
+      border-color: rgba(10,132,255,.35);
+      background: rgba(10,132,255,.10);
+      transform: translateY(-1px);
     }
 
     .wrap{
-      max-width: 900px;
+      max-width: 980px;
       margin: 0 auto;
-      padding: 26px 18px 18px;
-    }
-    .title{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom: 14px;
-    }
-    .title h1{ margin:0; font-size: 22px; }
-    .title p{ margin:6px 0 0; color:var(--muted); font-size: 13px; }
-    .pill{
-      border:1px solid var(--line);
-      padding:8px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      color:var(--muted);
-      background: rgba(255,255,255,.03);
-      white-space: nowrap;
+      padding: 22px 18px 28px;
     }
 
-    .card{
+    .panel{
       border:1px solid var(--line);
-      background: linear-gradient(180deg, rgba(15,21,29,.92), rgba(10,12,18,.92));
-      border-radius: 18px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      box-shadow: var(--shadow);
       padding: 18px;
-      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+    }
+
+    .header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 12px;
+    }
+    .header h1{
+      margin:0;
+      font-size: 20px;
+      letter-spacing:.2px;
+    }
+    .chip{
+      font-size:12px;
+      color: var(--muted);
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      white-space:nowrap;
     }
 
     .grid{
       display:grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0,1fr));
       gap: 10px;
     }
-    @media (max-width: 780px){
-      .grid{ grid-template-columns:1fr; }
-      .title{ flex-direction:column; align-items:flex-start; }
+    @media (max-width: 760px){
+      .grid{ grid-template-columns: 1fr; }
+      .header{ flex-direction:column; align-items:flex-start; }
     }
 
     label{
       display:block;
       font-size:12px;
-      color:var(--muted);
+      color: var(--muted);
       margin: 10px 0 6px;
     }
     input, textarea{
       width:100%;
       padding: 12px 12px;
       border-radius: 14px;
-      border:1px solid var(--line);
+      border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.03);
       color: var(--text);
-      outline: none;
+      outline:none;
     }
-    textarea{ height: 90px; resize: vertical; }
-    input::placeholder{ color: rgba(183,192,204,.75); }
+    textarea{ height: 92px; resize: vertical; }
+    input::placeholder, textarea::placeholder{ color: rgba(255,255,255,.45); }
     input:focus, textarea:focus{
       border-color: rgba(10,132,255,.55);
       box-shadow: 0 0 0 4px rgba(10,132,255,.12);
@@ -145,68 +140,72 @@
     .actions{
       display:flex;
       gap:10px;
-      margin-top: 14px;
       flex-wrap:wrap;
-    }
-    .btn{
-      padding: 12px 14px;
-      border-radius: 14px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      cursor:pointer;
-      font-size: 13px;
-      min-width: 180px;
-      text-decoration:none;
-      text-align:center;
-    }
-    /* Botão GERAR PDF azul (como você pediu) */
-    .btn-primary{
-      background:#0a84ff;
-      border-color: rgba(10,132,255,.55);
-    }
-    .btn-primary:hover{
-      background:#1e90ff;
+      margin-top: 14px;
     }
 
-    .footer{
-      margin-top: 18px;
-      padding-top: 14px;
-      border-top:1px solid var(--line);
-      color: var(--gray);
-      font-size: 12px;
+    /* Botão azul de gerar PDF (como você pediu) */
+    button{
+      padding: 12px 14px;
+      border-radius: 14px;
+      border:1px solid rgba(10,132,255,.55);
+      background:#0a84ff;
+      color:white;
+      cursor:pointer;
+      font-size: 13px;
+      min-width: 220px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+      transition: transform .10s ease, filter .15s ease;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
     }
+    button:hover{ filter: brightness(1.05); transform: translateY(-1px); }
+    button:active{ transform: translateY(0); }
+
+    .btn-secondary{
+      padding: 12px 14px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color:white;
+      text-decoration:none;
+      font-size: 13px;
+      min-width: 140px;
+      text-align:center;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+    }
+    .btn-secondary:hover{
+      border-color: rgba(10,132,255,.35);
+      background: rgba(10,132,255,.10);
+    }
+
+    svg{ width:18px; height:18px; }
   </style>
 </head>
 <body>
 
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="/">
-        <img src="/static/logo.png" alt="Senasoft Logo">
-        <div class="brand-title">
-          <strong>Senasoft</strong>
-          <span>Gerar Contrato</span>
-        </div>
-      </a>
-
+      <a class="logo" href="/"><img src="/static/logo.png" alt="Logo"></a>
       <nav class="nav">
-        <a href="/">Início</a>
-        <a href="/proposta">Proposta</a>
+        <a href="/"><svg viewBox="0 0 24 24" fill="none"><path d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8.5Z" stroke="rgba(255,255,255,.75)" stroke-width="1.6" stroke-linejoin="round"/></svg>Início</a>
+        <a href="/proposta"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l3 3v15a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="rgba(255,255,255,.75)" stroke-width="1.6"/><path d="M14 3v4h4" stroke="rgba(255,255,255,.75)" stroke-width="1.6"/></svg>Proposta</a>
       </nav>
     </div>
   </header>
 
   <main class="wrap">
-    <div class="title">
-      <div>
+    <section class="panel">
+      <div class="header">
         <h1>Contrato</h1>
-        <p>Preencha os campos variáveis e gere o PDF.</p>
+        <div class="chip">Gerar PDF</div>
       </div>
-      <div class="pill">Etapa 2</div>
-    </div>
 
-    <div class="card">
       <form method="post" action="/gerar-contrato">
         <div class="grid">
           <div>
@@ -217,7 +216,6 @@
             <label>CPF/CNPJ</label>
             <input name="cpf_cnpj" placeholder="Documento" required>
           </div>
-
           <div>
             <label>Endereço</label>
             <input name="endereco" placeholder="Endereço completo" required>
@@ -226,7 +224,6 @@
             <label>Telefone</label>
             <input name="telefone" placeholder="Telefone" required>
           </div>
-
           <div>
             <label>Email</label>
             <input name="email" placeholder="Email" required>
@@ -249,7 +246,6 @@
             <label>Data de término (DD/MM/AAAA)</label>
             <input name="data_termino" placeholder="Ex: 11/02/2027" required>
           </div>
-
           <div>
             <label>Franquia total</label>
             <input name="franquia_total" placeholder="Ex: 1000" required>
@@ -261,15 +257,24 @@
         </div>
 
         <div class="actions">
-          <button class="btn btn-primary" type="submit">GERAR CONTRATO (PDF)</button>
-          <a class="btn" href="/">Voltar</a>
+          <button type="submit">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 3v10" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M8 11.5 12 15.5l4-4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M6 20h12" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            GERAR PDF
+          </button>
+
+          <a class="btn-secondary" href="/">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M15 6l-6 6 6 6" stroke="rgba(255,255,255,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Voltar
+          </a>
         </div>
       </form>
-
-      <div class="footer">
-        Preto/Branco/Cinza • Botão de geração em azul • Layout tecnológico
-      </div>
-    </div>
+    </section>
   </main>
 
 </body>

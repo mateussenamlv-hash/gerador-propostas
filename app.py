@@ -3,10 +3,10 @@ from docxtpl import DocxTemplate, InlineImage
 from docx.shared import Mm
 import os
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 from decimal import Decimal, InvalidOperation
-import psycopg2
+import sqlite3
 
 app = Flask(__name__)
 
@@ -15,47 +15,97 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PROPOSTA_PATH = os.path.join(BASE_DIR, "template.docx")
 TEMPLATE_CONTRATO_PATH = os.path.join(BASE_DIR, "contrato_template.docx")
 
+# =========================
+# BANCO (SQLite local - simples e gratuito)
+# =========================
+DB_PATH = os.path.join(BASE_DIR, "propostas.db")
 
-# =========================
-# BANCO (POSTGRES - RAILWAY)
-# =========================
-def get_db_conn():
-    dsn = os.environ.get("DATABASE_URL")
-    if not dsn:
-        raise RuntimeError("DATABASE_URL não encontrada nas variáveis do Railway.")
-    # Railway às vezes fornece postgres:// e o psycopg2 aceita normalmente
-    # Força SSL em produção (Railway geralmente precisa)
-    return psycopg2.connect(dsn, sslmode="require")
+
+def db_conn():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
 def init_db():
-    with get_db_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS propostas (
-                    id UUID PRIMARY KEY,
-                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    cliente TEXT NOT NULL,
-                    cpf TEXT NOT NULL,
-                    modelo TEXT NOT NULL,
-                    franquia TEXT NOT NULL,
-                    valor_final TEXT NOT NULL,
-                    validade TEXT NOT NULL
-                );
-                """
-            )
-        conn.commit()
+    conn = db_conn()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS propostas (
+            id TEXT PRIMARY KEY,
+            created_at TEXT NOT NULL,
+            cliente TEXT,
+            cpf TEXT,
+            modelo TEXT,
+            franquia TEXT,
+            valor_input TEXT,
+            validade TEXT
+        )
+        """
+    )
+    conn.commit()
+    conn.close()
 
 
-def cleanup_propostas():
-    """Apaga automaticamente propostas com mais de 15 dias."""
-    with get_db_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "DELETE FROM propostas WHERE created_at < (NOW() - INTERVAL '15 days');"
-            )
-        conn.commit()
+def cleanup_old_proposals(days=15):
+    limite = datetime.now() - timedelta(days=days)
+    conn = db_conn()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM propostas WHERE datetime(created_at) < datetime(?)", (limite.isoformat(),))
+    conn.commit()
+    conn.close()
+
+
+def save_proposta(cliente, cpf, modelo, franquia, valor_input, validade) -> str:
+    proposal_id = str(uuid.uuid4())
+    conn = db_conn()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        INSERT INTO propostas (id, created_at, cliente, cpf, modelo, franquia, valor_input, validade)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            proposal_id,
+            datetime.now().isoformat(),
+            cliente,
+            cpf,
+            modelo,
+            franquia,
+            valor_input,
+            validade,
+        ),
+    )
+    conn.commit()
+    conn.close()
+    return proposal_id
+
+
+def get_recent_proposals(limit=50):
+    conn = db_conn()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT id, created_at, cliente, cpf, modelo, franquia, valor_input, validade
+        FROM propostas
+        ORDER BY datetime(created_at) DESC
+        LIMIT ?
+        """,
+        (limit,),
+    )
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+
+def get_proposta_by_id(proposal_id: str):
+    conn = db_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM propostas WHERE id = ?", (proposal_id,))
+    row = cur.fetchone()
+    conn.close()
+    return row
 
 
 # =========================
@@ -205,7 +255,7 @@ def home():
     return render_template("index.html")
 
 
-# --------- PROPOSTA (ETAPA 1) ----------
+# --------- PROPOSTA ----------
 @app.route("/proposta")
 def proposta_form():
     return render_template("proposta.html")
@@ -214,6 +264,8 @@ def proposta_form():
 @app.route("/gerar-pdf", methods=["POST"])
 def gerar_pdf():
     try:
+        cleanup_old_proposals(days=15)
+
         doc = DocxTemplate(TEMPLATE_PROPOSTA_PATH)
 
         cliente = request.form.get("cliente")
@@ -223,9 +275,12 @@ def gerar_pdf():
         valor_input = request.form.get("valor")
         validade = request.form.get("validade")
 
+        # Salva a proposta no banco (15 dias)
+        save_proposta(cliente, cpf, modelo, franquia, valor_input, validade)
+
         data_atual = hoje_por_extenso()
 
-        # VALOR FORMATADO + EXTENSO
+        # Valor formatado + extenso
         valor_dec = parse_money(valor_input)
         valor_formatado = format_money_ptbr(valor_dec)
 
@@ -239,7 +294,7 @@ def gerar_pdf():
 
         valor_final = f"{valor_formatado} ({valor_extenso})"
 
-        # IMAGEM (mantém como estava ajustado para não quebrar página)
+        # Imagem menor pra não quebrar página
         imagem = request.files.get("imagem")
         if imagem and imagem.filename != "":
             imagem_template = InlineImage(doc, imagem, height=Mm(45))
@@ -270,19 +325,6 @@ def gerar_pdf():
 
         pdf_path = docx_path.replace(".docx", ".pdf")
 
-        # ====== SALVAR NO BANCO (PARTE 4) ======
-        cleanup_propostas()
-        with get_db_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    INSERT INTO propostas (id, cliente, cpf, modelo, franquia, valor_final, validade)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    """,
-                    (uuid.UUID(unique_id), cliente, cpf, modelo, franquia, valor_final, validade)
-                )
-            conn.commit()
-
         nome_cliente = (cliente or "Cliente").replace(" ", "_")
         nome_final = f"Proposta_{nome_cliente}.pdf"
 
@@ -294,86 +336,24 @@ def gerar_pdf():
         return f"Erro interno: {str(e)}"
 
 
-# --------- PROPOSTAS RECENTES (PARTE 4) ----------
+# --------- PROPOSTAS RECENTES ----------
 @app.route("/propostas-recentes")
 def propostas_recentes():
-    try:
-        cleanup_propostas()
-
-        with get_db_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT id, cliente, cpf, modelo, franquia, valor_final, validade, created_at
-                    FROM propostas
-                    ORDER BY created_at DESC
-                    LIMIT 50
-                    """
-                )
-                rows = cur.fetchall()
-
-        propostas = []
-        for r in rows:
-            propostas.append({
-                "id": str(r[0]),
-                "cliente": r[1],
-                "cpf": r[2],
-                "modelo": r[3],
-                "franquia": r[4],
-                "valor_final": r[5],
-                "validade": r[6],
-                "created_at": r[7],
-            })
-
-        return render_template("propostas_recentes.html", propostas=propostas)
-
-    except Exception as e:
-        return f"Erro interno: {str(e)}"
+    cleanup_old_proposals(days=15)
+    rows = get_recent_proposals(limit=50)
+    return render_template("propostas_recentes.html", propostas=rows)
 
 
-@app.route("/propostas/<proposta_id>/excluir", methods=["POST"])
-def excluir_proposta(proposta_id):
-    try:
-        cleanup_propostas()
-        with get_db_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute("DELETE FROM propostas WHERE id = %s", (proposta_id,))
-            conn.commit()
-        return redirect(url_for("propostas_recentes"))
-    except Exception as e:
-        return f"Erro interno: {str(e)}"
-
-
-@app.route("/propostas/<proposta_id>/contrato")
-def contrato_de_proposta(proposta_id):
-    """Abre o formulário do contrato já preenchendo o que existe na proposta."""
-    try:
-        cleanup_propostas()
-        with get_db_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "SELECT cliente, cpf FROM propostas WHERE id = %s",
-                    (proposta_id,)
-                )
-                row = cur.fetchone()
-
-        prefill = {}
-        if row:
-            prefill = {
-                "denominacao": row[0],
-                "cpf_cnpj": row[1],
-            }
-
-        return render_template("contrato.html", prefill=prefill)
-
-    except Exception as e:
-        return f"Erro interno: {str(e)}"
-
-
-# --------- CONTRATO (ETAPA 2) ----------
+# --------- CONTRATO ----------
 @app.route("/contrato")
 def contrato_form():
-    return render_template("contrato.html", prefill={})
+    # Se vier de uma proposta recente, pré-preenche o que der
+    proposal_id = request.args.get("from")
+    prefill = None
+    if proposal_id:
+        cleanup_old_proposals(days=15)
+        prefill = get_proposta_by_id(proposal_id)
+    return render_template("contrato.html", prefill=prefill)
 
 
 @app.route("/gerar-contrato", methods=["POST"])
@@ -453,13 +433,7 @@ def gerar_contrato():
 # =========================
 # STARTUP
 # =========================
-# Cria tabela ao subir
-try:
-    init_db()
-except Exception:
-    # Se ainda não tiver DATABASE_URL localmente, não quebra o app
-    pass
-
+init_db()
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))

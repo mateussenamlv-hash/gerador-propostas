@@ -1,259 +1,38 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Contrato</title>
+  <title>Gerar Contrato</title>
   <style>
-    :root{
-      --bg0:#05070b;
-      --bg2:#0a0f18;
-      --line: rgba(255,255,255,.10);
-      --text:#ffffff;
-      --muted: rgba(255,255,255,.68);
-      --blue:#0a84ff;
-      --shadow: 0 22px 60px rgba(0,0,0,.55);
-      --radius: 20px;
-    }
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      font-family: Arial, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(1200px 700px at 75% 15%, rgba(10,132,255,.22), transparent 60%),
-        radial-gradient(900px 500px at 20% 20%, rgba(255,255,255,.06), transparent 55%),
-        linear-gradient(180deg, var(--bg2), var(--bg0));
-      min-height:100vh;
-    }
-    .topbar{
-      position: sticky;
-      top:0;
-      z-index: 10;
-      background: rgba(5,7,11,.58);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--line);
-    }
-    .topbar-inner{
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 14px 18px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-    }
-    .logo img{ height:38px; display:block; }
-    .logo{ text-decoration:none; display:flex; align-items:center; }
-
-    .nav{ display:flex; gap:8px; align-items:center; }
-    .nav a{
-      text-decoration:none;
-      color: var(--muted);
-      font-size: 13px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border:1px solid transparent;
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      transition: background .15s ease, border-color .15s ease, transform .12s ease, color .15s ease;
-    }
-    .nav a:hover{
-      color: var(--text);
-      border-color: rgba(10,132,255,.35);
-      background: rgba(10,132,255,.10);
-      transform: translateY(-1px);
-    }
-
-    .wrap{ max-width: 980px; margin: 0 auto; padding: 22px 18px 28px; }
-
-    .panel{
-      border:1px solid var(--line);
-      border-radius: var(--radius);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      box-shadow: var(--shadow);
-      padding: 18px;
-    }
-
-    .header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 12px; }
-    .header h1{ margin:0; font-size: 20px; }
-
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 10px;
-    }
-    @media (max-width: 760px){
-      .grid{ grid-template-columns: 1fr; }
-      .header{ flex-direction:column; align-items:flex-start; }
-    }
-
-    label{ display:block; font-size:12px; color: var(--muted); margin: 10px 0 6px; }
-    input, textarea{
-      width:100%;
-      padding: 12px 12px;
-      border-radius: 14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      outline:none;
-    }
-    textarea{ height: 92px; resize: vertical; }
-    input::placeholder, textarea::placeholder{ color: rgba(255,255,255,.45); }
-    input:focus, textarea:focus{
-      border-color: rgba(10,132,255,.55);
-      box-shadow: 0 0 0 4px rgba(10,132,255,.12);
-    }
-
-    .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; align-items:center; }
-
-    button{
-      padding: 12px 14px;
-      border-radius: 14px;
-      border:1px solid rgba(10,132,255,.55);
-      background:#0a84ff;
-      color:white;
-      cursor:pointer;
-      font-size: 13px;
-      min-width: 220px;
-      box-shadow: 0 18px 40px rgba(0,0,0,.35);
-      transition: transform .10s ease, filter .15s ease;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-    }
-    button:hover{ filter: brightness(1.05); transform: translateY(-1px); }
-    button:active{ transform: translateY(0); }
-    button[disabled]{ opacity:.75; cursor:not-allowed; transform:none; }
-
-    .btn-secondary{
-      padding: 12px 14px;
-      border-radius: 14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color:white;
-      text-decoration:none;
-      font-size: 13px;
-      min-width: 140px;
-      text-align:center;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-    }
-    .btn-secondary:hover{
-      border-color: rgba(10,132,255,.35);
-      background: rgba(10,132,255,.10);
-    }
-
-    .spinner{
-      width:16px;height:16px;
-      border:2px solid rgba(255,255,255,.55);
-      border-top-color: rgba(255,255,255,.15);
-      border-radius:999px;
-      animation: spin .8s linear infinite;
-      display:none;
-    }
-    @keyframes spin{ to{ transform: rotate(360deg); } }
+    body { background:#000; color:white; font-family:Arial; padding:40px; }
+    input,button,textarea { padding:10px; margin:5px; width:100%; box-sizing:border-box; }
+    button { background:#0a84ff; color:white; border:none; cursor:pointer; }
+    textarea { min-height: 80px; }
+    a { color:#0a84ff; text-decoration:none; }
   </style>
 </head>
 <body>
 
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a class="logo" href="/"><img src="/static/logo.png" alt="Logo"></a>
-      <nav class="nav">
-        <a href="/">Início</a>
-        <a href="/propostas-recentes">Propostas recentes</a>
-        <a href="/proposta">Proposta</a>
-      </nav>
-    </div>
-  </header>
+  <h1>Gerar Contrato</h1>
+  <p><a href="/">← Voltar</a></p>
 
-  <main class="wrap">
-    <section class="panel">
-      <div class="header">
-        <h1>Contrato</h1>
-      </div>
+  <form method="post" action="/gerar-contrato">
+    <input name="denominacao" placeholder="DENOMINAÇÃO" required value="{{ (prefill.get('denominacao') if prefill else '') }}">
+    <input name="cpf_cnpj" placeholder="CPF/CNPJ" required value="{{ (prefill.get('cpf_cnpj') if prefill else '') }}">
+    <input name="endereco" placeholder="ENDEREÇO" required>
+    <input name="telefone" placeholder="TELEFONE" required>
+    <input name="email" placeholder="EMAIL" required>
 
-      <form id="formContrato" method="post" action="/gerar-contrato">
-        <!-- se veio de proposta recente, isso vem preenchido -->
-        <input type="hidden" name="proposta_id" value="{{ prefill.get('proposta_id','') }}">
+    <input name="equipamento" placeholder="EQUIPAMENTO" required>
+    <textarea name="acessorios" placeholder="ACESSÓRIOS QUE ACOMPANHAM" required></textarea>
 
-        <div class="grid">
-          <div>
-            <label>Denominação</label>
-            <input name="denominacao" placeholder="Cliente / Razão social" required value="{{ prefill.get('denominacao','') }}">
-          </div>
-          <div>
-            <label>CPF/CNPJ</label>
-            <input name="cpf_cnpj" placeholder="Documento" required value="{{ prefill.get('cpf_cnpj','') }}">
-          </div>
-          <div>
-            <label>Endereço</label>
-            <input name="endereco" placeholder="Endereço completo" required>
-          </div>
-          <div>
-            <label>Telefone</label>
-            <input name="telefone" placeholder="Telefone" required>
-          </div>
-          <div>
-            <label>Email</label>
-            <input name="email" placeholder="Email" required>
-          </div>
-          <div>
-            <label>Equipamento</label>
-            <input name="equipamento" placeholder="Modelo/descrição do equipamento" required value="{{ prefill.get('equipamento','') }}">
-          </div>
-        </div>
+    <input name="data_inicio" placeholder="DATA INÍCIO (DD/MM/AAAA)" required>
+    <input name="data_termino" placeholder="DATA TÉRMINO (DD/MM/AAAA)" required>
 
-        <label>Acessórios</label>
-        <textarea name="acessorios" placeholder="Liste os acessórios que acompanham o equipamento" required></textarea>
+    <input name="franquia_total" placeholder="FRANQUIA TOTAL (ex: 1000)" required>
+    <input name="valor_mensal" placeholder="VALOR MENSAL (ex: 200 ou 200,00)" required>
 
-        <div class="grid">
-          <div>
-            <label>Data de início (DD/MM/AAAA)</label>
-            <input name="data_inicio" placeholder="Ex: 11/02/2026" required>
-          </div>
-          <div>
-            <label>Data de término (DD/MM/AAAA)</label>
-            <input name="data_termino" placeholder="Ex: 11/02/2027" required>
-          </div>
-          <div>
-            <label>Franquia total</label>
-            <input name="franquia_total" placeholder="Ex: 1000" required value="{{ prefill.get('franquia_total','') }}">
-          </div>
-          <div>
-            <label>Valor fixo mensal</label>
-            <input name="valor_mensal" placeholder="Ex: 200 ou 200,00" required value="{{ prefill.get('valor_mensal','') }}">
-          </div>
-        </div>
-
-        <div class="actions">
-          <button id="btnGerarC" type="submit">
-            <span id="btnTextC">GERAR PDF</span>
-            <span id="spinC" class="spinner"></span>
-          </button>
-          <a class="btn-secondary" href="/">Voltar</a>
-        </div>
-      </form>
-    </section>
-  </main>
-
-  <script>
-    const formC = document.getElementById("formContrato");
-    const btnC = document.getElementById("btnGerarC");
-    const txtC = document.getElementById("btnTextC");
-    const spinC = document.getElementById("spinC");
-
-    formC.addEventListener("submit", () => {
-      btnC.disabled = true;
-      txtC.textContent = "Gerando...";
-      spinC.style.display = "inline-block";
-    });
-  </script>
+    <button type="submit">GERAR PDF</button>
+  </form>
 
 </body>
 </html>

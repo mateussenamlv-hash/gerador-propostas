@@ -6,6 +6,7 @@ import subprocess
 from datetime import datetime
 import uuid
 from decimal import Decimal, InvalidOperation
+from zoneinfo import ZoneInfo  # <-- NOVO (para corrigir o fuso no Railway)
 
 app = Flask(__name__)
 
@@ -150,7 +151,10 @@ def hoje_por_extenso() -> str:
         "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
         "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
     ]
-    agora = datetime.now()
+
+    # ✅ CORREÇÃO: usa fuso do Brasil (Railway normalmente roda em UTC)
+    agora = datetime.now(ZoneInfo("America/Sao_Paulo"))
+
     return f"{agora.day} de {meses[agora.month - 1]} de {agora.year}"
 
 
@@ -193,7 +197,6 @@ def gerar_pdf():
         if centavos == 0:
             valor_extenso = numero_por_extenso_pt(valor_reais_int)
         else:
-            # se tiver centavos, mantém por extenso completo (com reais/centavos)
             valor_extenso = dinheiro_por_extenso(valor_dec)
 
         valor_final = f"{valor_formatado} ({valor_extenso})"
@@ -201,7 +204,6 @@ def gerar_pdf():
         # ===== 1ª MUDANÇA: IMAGEM MENOR (para não ir pra 2 páginas) =====
         imagem = request.files.get("imagem")
         if imagem and imagem.filename != "":
-            # antes estava 63mm e ainda quebrava página; agora reduzimos bem
             imagem_template = InlineImage(doc, imagem, height=Mm(45))
         else:
             imagem_template = ""
@@ -211,7 +213,7 @@ def gerar_pdf():
             "CPF": cpf,
             "MODELO": modelo,
             "FRANQUIA": franquia,
-            "VALOR": valor_final,       # <- aqui entra o "250,00 (duzentos e cinquenta)"
+            "VALOR": valor_final,
             "VALIDADE": validade,
             "DATA": data_atual,
             "IMAGEM": imagem_template,
@@ -261,11 +263,11 @@ def gerar_contrato():
         equipamento = request.form.get("equipamento")
         acessorios = request.form.get("acessorios")
 
-        data_inicio_input = request.form.get("data_inicio")   # DD/MM/AAAA
-        data_termino_input = request.form.get("data_termino") # DD/MM/AAAA
+        data_inicio_input = request.form.get("data_inicio")
+        data_termino_input = request.form.get("data_termino")
 
-        franquia_input = request.form.get("franquia_total")   # ex: 1000
-        valor_mensal_input = request.form.get("valor_mensal") # ex: 200
+        franquia_input = request.form.get("franquia_total")
+        valor_mensal_input = request.form.get("valor_mensal")
 
         data_inicio = data_por_extenso(data_inicio_input)
         data_termino = data_por_extenso(data_termino_input)

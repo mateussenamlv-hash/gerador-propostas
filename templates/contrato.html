@@ -11,7 +11,7 @@
       --line: rgba(255,255,255,.10);
       --text:#ffffff;
       --muted: rgba(255,255,255,.68);
-      --blue:#0a84ff; /* manter */
+      --blue:#0a84ff;
       --shadow: 0 22px 60px rgba(0,0,0,.55);
       --radius: 20px;
     }
@@ -26,7 +26,6 @@
         linear-gradient(180deg, var(--bg2), var(--bg0));
       min-height:100vh;
     }
-
     .topbar{
       position: sticky;
       top:0;
@@ -47,9 +46,7 @@
     .logo img{ height:38px; display:block; }
     .logo{ text-decoration:none; display:flex; align-items:center; }
 
-    .nav{
-      display:flex; gap:8px; align-items:center;
-    }
+    .nav{ display:flex; gap:8px; align-items:center; }
     .nav a{
       text-decoration:none;
       color: var(--muted);
@@ -69,11 +66,7 @@
       transform: translateY(-1px);
     }
 
-    .wrap{
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 22px 18px 28px;
-    }
+    .wrap{ max-width: 980px; margin: 0 auto; padding: 22px 18px 28px; }
 
     .panel{
       border:1px solid var(--line);
@@ -83,27 +76,8 @@
       padding: 18px;
     }
 
-    .header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom: 12px;
-    }
-    .header h1{
-      margin:0;
-      font-size: 20px;
-      letter-spacing:.2px;
-    }
-    .chip{
-      font-size:12px;
-      color: var(--muted);
-      padding: 8px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
-      white-space:nowrap;
-    }
+    .header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 12px; }
+    .header h1{ margin:0; font-size: 20px; }
 
     .grid{
       display:grid;
@@ -115,12 +89,7 @@
       .header{ flex-direction:column; align-items:flex-start; }
     }
 
-    label{
-      display:block;
-      font-size:12px;
-      color: var(--muted);
-      margin: 10px 0 6px;
-    }
+    label{ display:block; font-size:12px; color: var(--muted); margin: 10px 0 6px; }
     input, textarea{
       width:100%;
       padding: 12px 12px;
@@ -137,14 +106,8 @@
       box-shadow: 0 0 0 4px rgba(10,132,255,.12);
     }
 
-    .actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top: 14px;
-    }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; align-items:center; }
 
-    /* Botão azul de gerar PDF (como você pediu) */
     button{
       padding: 12px 14px;
       border-radius: 14px;
@@ -163,6 +126,7 @@
     }
     button:hover{ filter: brightness(1.05); transform: translateY(-1px); }
     button:active{ transform: translateY(0); }
+    button[disabled]{ opacity:.75; cursor:not-allowed; transform:none; }
 
     .btn-secondary{
       padding: 12px 14px;
@@ -184,7 +148,15 @@
       background: rgba(10,132,255,.10);
     }
 
-    svg{ width:18px; height:18px; }
+    .spinner{
+      width:16px;height:16px;
+      border:2px solid rgba(255,255,255,.55);
+      border-top-color: rgba(255,255,255,.15);
+      border-radius:999px;
+      animation: spin .8s linear infinite;
+      display:none;
+    }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -193,8 +165,9 @@
     <div class="topbar-inner">
       <a class="logo" href="/"><img src="/static/logo.png" alt="Logo"></a>
       <nav class="nav">
-        <a href="/"><svg viewBox="0 0 24 24" fill="none"><path d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8.5Z" stroke="rgba(255,255,255,.75)" stroke-width="1.6" stroke-linejoin="round"/></svg>Início</a>
-        <a href="/proposta"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l3 3v15a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="rgba(255,255,255,.75)" stroke-width="1.6"/><path d="M14 3v4h4" stroke="rgba(255,255,255,.75)" stroke-width="1.6"/></svg>Proposta</a>
+        <a href="/">Início</a>
+        <a href="/propostas-recentes">Propostas recentes</a>
+        <a href="/proposta">Proposta</a>
       </nav>
     </div>
   </header>
@@ -203,18 +176,20 @@
     <section class="panel">
       <div class="header">
         <h1>Contrato</h1>
-        <div class="chip">Gerar PDF</div>
       </div>
 
-      <form method="post" action="/gerar-contrato">
+      <form id="formContrato" method="post" action="/gerar-contrato">
+        <!-- se veio de proposta recente, isso vem preenchido -->
+        <input type="hidden" name="proposta_id" value="{{ prefill.get('proposta_id','') }}">
+
         <div class="grid">
           <div>
             <label>Denominação</label>
-            <input name="denominacao" placeholder="Cliente / Razão social" required>
+            <input name="denominacao" placeholder="Cliente / Razão social" required value="{{ prefill.get('denominacao','') }}">
           </div>
           <div>
             <label>CPF/CNPJ</label>
-            <input name="cpf_cnpj" placeholder="Documento" required>
+            <input name="cpf_cnpj" placeholder="Documento" required value="{{ prefill.get('cpf_cnpj','') }}">
           </div>
           <div>
             <label>Endereço</label>
@@ -230,7 +205,7 @@
           </div>
           <div>
             <label>Equipamento</label>
-            <input name="equipamento" placeholder="Modelo/descrição do equipamento" required>
+            <input name="equipamento" placeholder="Modelo/descrição do equipamento" required value="{{ prefill.get('equipamento','') }}">
           </div>
         </div>
 
@@ -248,34 +223,37 @@
           </div>
           <div>
             <label>Franquia total</label>
-            <input name="franquia_total" placeholder="Ex: 1000" required>
+            <input name="franquia_total" placeholder="Ex: 1000" required value="{{ prefill.get('franquia_total','') }}">
           </div>
           <div>
             <label>Valor fixo mensal</label>
-            <input name="valor_mensal" placeholder="Ex: 200 ou 200,00" required>
+            <input name="valor_mensal" placeholder="Ex: 200 ou 200,00" required value="{{ prefill.get('valor_mensal','') }}">
           </div>
         </div>
 
         <div class="actions">
-          <button type="submit">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M12 3v10" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
-              <path d="M8 11.5 12 15.5l4-4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M6 20h12" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-            GERAR PDF
+          <button id="btnGerarC" type="submit">
+            <span id="btnTextC">GERAR PDF</span>
+            <span id="spinC" class="spinner"></span>
           </button>
-
-          <a class="btn-secondary" href="/">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M15 6l-6 6 6 6" stroke="rgba(255,255,255,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Voltar
-          </a>
+          <a class="btn-secondary" href="/">Voltar</a>
         </div>
       </form>
     </section>
   </main>
+
+  <script>
+    const formC = document.getElementById("formContrato");
+    const btnC = document.getElementById("btnGerarC");
+    const txtC = document.getElementById("btnTextC");
+    const spinC = document.getElementById("spinC");
+
+    formC.addEventListener("submit", () => {
+      btnC.disabled = true;
+      txtC.textContent = "Gerando...";
+      spinC.style.display = "inline-block";
+    });
+  </script>
 
 </body>
 </html>

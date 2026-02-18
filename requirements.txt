@@ -1,3 +1,6 @@
 flask
 docxtpl
-pillow
+python-docx
+reportlab
+psycopg2-binary
+SQLAlchemy

@@ -1,30 +1,255 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-  <title>Gerador de Propostas</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Senasoft • Proposta</title>
   <style>
-    body { background:#000; color:white; font-family:Arial; padding:40px; }
-    input,button { padding:10px; margin:5px; width:100%; }
-    button { background:#0a84ff; color:white; border:none; cursor:pointer; }
+    :root{
+      --bg:#0b0f14;
+      --bg2:#070a0f;
+      --card:#0f151d;
+      --line:#232a34;
+      --text:#ffffff;
+      --muted:#b7c0cc;
+      --gray:#9aa4b2;
+      --blue:#0a84ff;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 70% 20%, rgba(10,132,255,.18), transparent 60%),
+        radial-gradient(900px 500px at 20% 30%, rgba(255,255,255,.06), transparent 55%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      min-height:100vh;
+    }
+
+    .topbar{
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(7,10,15,.72);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+    }
+    .topbar-inner{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 14px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      text-decoration:none;
+      color:var(--text);
+    }
+    .brand img{ height:38px; width:auto; display:block; }
+    .brand-title strong{
+      display:block;
+      font-size:14px;
+      letter-spacing:.6px;
+      text-transform:uppercase;
+    }
+    .brand-title span{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .nav{ display:flex; gap:10px; }
+    .nav a{
+      color:var(--muted);
+      text-decoration:none;
+      font-size:13px;
+      padding:10px 12px;
+      border:1px solid transparent;
+      border-radius:10px;
+    }
+    .nav a:hover{
+      border-color: var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+    }
+
+    .wrap{
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 26px 18px 18px;
+    }
+    .title{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 14px;
+    }
+    .title h1{ margin:0; font-size: 22px; }
+    .title p{ margin:6px 0 0; color:var(--muted); font-size: 13px; }
+    .pill{
+      border:1px solid var(--line);
+      padding:8px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      color:var(--muted);
+      background: rgba(255,255,255,.03);
+      white-space: nowrap;
+    }
+
+    .card{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(15,21,29,.92), rgba(10,12,18,.92));
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 720px){
+      .grid{ grid-template-columns:1fr; }
+      .title{ flex-direction:column; align-items:flex-start; }
+    }
+
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin: 10px 0 6px;
+    }
+    input, textarea{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      outline: none;
+    }
+    input::placeholder{ color: rgba(183,192,204,.75); }
+    input:focus, textarea:focus{
+      border-color: rgba(10,132,255,.55);
+      box-shadow: 0 0 0 4px rgba(10,132,255,.12);
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      margin-top: 14px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      padding: 12px 14px;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      cursor:pointer;
+      font-size: 13px;
+      min-width: 160px;
+      text-decoration:none;
+      text-align:center;
+    }
+    /* Botão GERAR PDF azul (como você pediu) */
+    .btn-primary{
+      background:#0a84ff;
+      border-color: rgba(10,132,255,.55);
+    }
+    .btn-primary:hover{
+      background:#1e90ff;
+    }
+
+    .footer{
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top:1px solid var(--line);
+      color: var(--gray);
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Gerador de Propostas</h1>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/">
+        <img src="/static/logo.png" alt="Senasoft Logo">
+        <div class="brand-title">
+          <strong>Senasoft</strong>
+          <span>Gerar Proposta</span>
+        </div>
+      </a>
 
-  <form method="post" action="/gerar-pdf" enctype="multipart/form-data">
-    <input name="cliente" placeholder="Cliente" required>
-    <input name="cpf" placeholder="CPF" required>
-    <input name="modelo" placeholder="Modelo" required>
-    <input name="franquia" placeholder="Franquia" required>
+      <nav class="nav">
+        <a href="/">Início</a>
+        <a href="/contrato">Contrato</a>
+      </nav>
+    </div>
+  </header>
 
-    <input name="valor" placeholder="Valor" required>
-    <input name="validade" placeholder="Validade" required>
+  <main class="wrap">
+    <div class="title">
+      <div>
+        <h1>Proposta</h1>
+        <p>Preencha os campos e gere o PDF.</p>
+      </div>
+      <div class="pill">Etapa 1</div>
+    </div>
 
-    <input type="file" name="imagem" accept="image/*">
+    <div class="card">
+      <form method="post" action="/gerar-pdf" enctype="multipart/form-data">
+        <div class="grid">
+          <div>
+            <label>Cliente</label>
+            <input name="cliente" placeholder="Nome do cliente" required>
+          </div>
+          <div>
+            <label>CPF</label>
+            <input name="cpf" placeholder="CPF do cliente" required>
+          </div>
 
-    <button type="submit">GERAR PDF</button>
-  </form>
+          <div>
+            <label>Modelo</label>
+            <input name="modelo" placeholder="Modelo da impressora" required>
+          </div>
+          <div>
+            <label>Franquia</label>
+            <input name="franquia" placeholder="Ex: 1000 impressões" required>
+          </div>
+
+          <div>
+            <label>Investimento mensal</label>
+            <input name="valor" placeholder="Ex: 250" required>
+          </div>
+          <div>
+            <label>Validade</label>
+            <input name="validade" placeholder="Ex: 7 dias" required>
+          </div>
+        </div>
+
+        <label>Imagem (opcional)</label>
+        <input type="file" name="imagem" accept="image/*">
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit">GERAR PDF</button>
+          <a class="btn" href="/">Voltar</a>
+        </div>
+      </form>
+
+      <div class="footer">
+        Preto/Branco/Cinza • Botão de geração em azul • Layout tecnológico
+      </div>
+    </div>
+  </main>
 
 </body>
 </html>

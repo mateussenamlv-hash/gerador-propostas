@@ -1,6 +1,5 @@
 flask
-docxtpl
 python-docx
 reportlab
+docxtpl
 psycopg2-binary
-SQLAlchemy

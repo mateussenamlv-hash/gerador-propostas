@@ -5,7 +5,7 @@ import os
 import subprocess
 from datetime import datetime
 import uuid
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -34,12 +34,12 @@ def init_db():
         CREATE TABLE IF NOT EXISTS propostas (
             id TEXT PRIMARY KEY,
             created_at TIMESTAMP NOT NULL,
+            status TEXT,
             cliente TEXT,
             cpf TEXT,
             modelo TEXT,
             franquia TEXT,
-            valor_input TEXT,
-            validade TEXT
+            valor TEXT
         )
     """)
     conn.commit()
@@ -49,23 +49,31 @@ def init_db():
 def cleanup_old_proposals(days=15):
     conn = db_conn()
     cur = conn.cursor()
-    cur.execute(f"""
+    cur.execute("""
         DELETE FROM propostas
-        WHERE created_at < NOW() - INTERVAL '{days} days'
-    """)
+        WHERE created_at < NOW() - INTERVAL %s
+    """, (f"{days} days",))
     conn.commit()
     conn.close()
 
 
-def save_proposta(cliente, cpf, modelo, franquia, valor_input, validade):
+def save_proposta(cliente, cpf, modelo, franquia, valor):
     proposal_id = str(uuid.uuid4())
     conn = db_conn()
     cur = conn.cursor()
     cur.execute("""
         INSERT INTO propostas
-        (id, created_at, cliente, cpf, modelo, franquia, valor_input, validade)
+        (id, created_at, status, cliente, cpf, modelo, franquia, valor)
         VALUES (%s, NOW(), %s, %s, %s, %s, %s, %s)
-    """, (proposal_id, cliente, cpf, modelo, franquia, valor_input, validade))
+    """, (
+        proposal_id,
+        "pendente",
+        cliente,
+        cpf,
+        modelo,
+        franquia,
+        valor,
+    ))
     conn.commit()
     conn.close()
     return proposal_id
@@ -94,7 +102,7 @@ def get_proposta_by_id(proposal_id):
 
 
 # =========================
-# FUNÇÕES AUXILIARES
+# AUXILIARES
 # =========================
 
 def parse_money(valor_str: str) -> Decimal:
@@ -144,13 +152,12 @@ def gerar_pdf():
         modelo = request.form.get("modelo")
         franquia = request.form.get("franquia")
         valor_input = request.form.get("valor")
-        validade = request.form.get("validade")
-
-        save_proposta(cliente, cpf, modelo, franquia, valor_input, validade)
 
         valor_dec = parse_money(valor_input)
         valor_formatado = format_money_ptbr(valor_dec)
-        valor_final = f"{valor_formatado}"
+
+        # salva no banco
+        save_proposta(cliente, cpf, modelo, franquia, valor_formatado)
 
         imagem = request.files.get("imagem")
         imagem_template = InlineImage(doc, imagem, height=Mm(45)) if imagem and imagem.filename else ""
@@ -160,8 +167,7 @@ def gerar_pdf():
             "CPF": cpf,
             "MODELO": modelo,
             "FRANQUIA": franquia,
-            "VALOR": valor_final,
-            "VALIDADE": validade,
+            "VALOR": valor_formatado,
             "DATA": hoje_por_extenso(),
             "IMAGEM": imagem_template,
         }

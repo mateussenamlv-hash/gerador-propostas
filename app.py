@@ -1,12 +1,14 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, redirect, url_for
 from docxtpl import DocxTemplate, InlineImage
 from docx.shared import Mm
 import os
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import uuid
 from decimal import Decimal, InvalidOperation
-from zoneinfo import ZoneInfo  # <-- NOVO (para corrigir o fuso no Railway)
+
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 app = Flask(__name__)
 
@@ -15,10 +17,87 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PROPOSTA_PATH = os.path.join(BASE_DIR, "template.docx")
 TEMPLATE_CONTRATO_PATH = os.path.join(BASE_DIR, "contrato_template.docx")
 
+# ==========================================================
+# BANCO DE DADOS (PostgreSQL na Railway)
+# - Railway geralmente fornece DATABASE_URL
+# - Para dev local sem Postgres, cai em SQLite
+# ==========================================================
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 
-# =========================
+if DATABASE_URL:
+    # Railway costuma vir com postgres:// (precisa ser postgresql:// pro SQLAlchemy)
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+else:
+    DATABASE_URL = "sqlite:///" + os.path.join(BASE_DIR, "app.db")
+
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+Base = declarative_base()
+
+
+class Proposta(Base):
+    __tablename__ = "propostas"
+
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, nullable=False, index=True)
+    status = Column(String(30), nullable=False, default="pendente")
+
+    cliente = Column(String(200), nullable=False)
+    cpf = Column(String(50), nullable=False)
+    modelo = Column(String(200), nullable=False)
+    franquia = Column(String(100), nullable=False)
+    valor = Column(String(120), nullable=False)     # já formatado "250,00 (duzentos...)"
+    validade = Column(String(120), nullable=False)
+
+    # opcional, se quiser usar no futuro
+    observacao = Column(Text, nullable=True)
+
+
+class Contrato(Base):
+    __tablename__ = "contratos"
+
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime, nullable=False, index=True)
+    proposta_id = Column(Integer, nullable=True, index=True)
+
+    denominacao = Column(String(200), nullable=False)
+    cpf_cnpj = Column(String(80), nullable=False)
+    endereco = Column(String(250), nullable=False)
+    telefone = Column(String(80), nullable=False)
+    email = Column(String(200), nullable=False)
+
+    equipamento = Column(String(250), nullable=False)
+    acessorios = Column(Text, nullable=False)
+
+    data_inicio = Column(String(60), nullable=False)     # por extenso
+    data_termino = Column(String(60), nullable=False)    # por extenso
+
+    franquia_formatada = Column(String(60), nullable=False)
+    franquia_extenso = Column(String(120), nullable=False)
+
+    valor_mensal_formatado = Column(String(60), nullable=False)
+    valor_mensal_extenso = Column(String(180), nullable=False)
+
+    data_assinatura = Column(String(60), nullable=False)
+
+
+Base.metadata.create_all(engine)
+
+# ==========================================================
 # FUNÇÕES AUXILIARES
-# =========================
+# ==========================================================
+def agora_utc() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def limpar_propostas_antigas(db):
+    """Apaga propostas com mais de 15 dias."""
+    limite = agora_utc() - timedelta(days=15)
+    db.query(Proposta).filter(Proposta.created_at < limite).delete()
+    db.commit()
+
+
 def data_por_extenso(data_str: str) -> str:
     """Converte 'DD/MM/AAAA' -> '11 de Fevereiro de 2026'."""
     meses = [
@@ -151,22 +230,55 @@ def hoje_por_extenso() -> str:
         "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
         "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
     ]
-
-    # ✅ CORREÇÃO: usa fuso do Brasil (Railway normalmente roda em UTC)
-    agora = datetime.now(ZoneInfo("America/Sao_Paulo"))
-
+    # usa data local do servidor (Railway) — normalmente ok
+    agora = datetime.now()
     return f"{agora.day} de {meses[agora.month - 1]} de {agora.year}"
 
 
-# =========================
+# ==========================================================
 # ROTAS
-# =========================
+# ==========================================================
 @app.route("/")
 def home():
+    db = SessionLocal()
+    try:
+        limpar_propostas_antigas(db)
+    finally:
+        db.close()
     return render_template("index.html")
 
 
-# --------- PROPOSTA (ETAPA 1) ----------
+@app.route("/propostas-recentes")
+def propostas_recentes():
+    db = SessionLocal()
+    try:
+        limpar_propostas_antigas(db)
+        limite = agora_utc() - timedelta(days=15)
+        propostas = (
+            db.query(Proposta)
+            .filter(Proposta.created_at >= limite)
+            .order_by(Proposta.created_at.desc())
+            .all()
+        )
+        return render_template("propostas_recentes.html", propostas=propostas)
+    finally:
+        db.close()
+
+
+@app.route("/propostas-recentes/excluir/<int:proposta_id>", methods=["POST"])
+def excluir_proposta(proposta_id: int):
+    db = SessionLocal()
+    try:
+        p = db.query(Proposta).filter(Proposta.id == proposta_id).first()
+        if p:
+            db.delete(p)
+            db.commit()
+        return redirect(url_for("propostas_recentes"))
+    finally:
+        db.close()
+
+
+# --------- PROPOSTA ----------
 @app.route("/proposta")
 def proposta_form():
     return render_template("proposta.html")
@@ -174,7 +286,10 @@ def proposta_form():
 
 @app.route("/gerar-pdf", methods=["POST"])
 def gerar_pdf():
+    db = SessionLocal()
     try:
+        limpar_propostas_antigas(db)
+
         doc = DocxTemplate(TEMPLATE_PROPOSTA_PATH)
 
         cliente = request.form.get("cliente")
@@ -186,11 +301,10 @@ def gerar_pdf():
 
         data_atual = hoje_por_extenso()
 
-        # ===== 2ª MUDANÇA: VALOR FORMATADO + EXTENSO =====
+        # VALOR FORMATADO + EXTENSO
         valor_dec = parse_money(valor_input)
         valor_formatado = format_money_ptbr(valor_dec)
 
-        # Você pediu: "250,00 (duzentos e cinquenta)" -> sem "reais"
         valor_reais_int = int(valor_dec.quantize(Decimal("0.01")))
         centavos = int((valor_dec.quantize(Decimal("0.01")) - Decimal(valor_reais_int)) * 100)
 
@@ -201,10 +315,10 @@ def gerar_pdf():
 
         valor_final = f"{valor_formatado} ({valor_extenso})"
 
-        # ===== 1ª MUDANÇA: IMAGEM MENOR (para não ir pra 2 páginas) =====
+        # IMAGEM (mantém upload exatamente como estava, só reduz tamanho)
         imagem = request.files.get("imagem")
         if imagem and imagem.filename != "":
-            imagem_template = InlineImage(doc, imagem, height=Mm(45))
+            imagem_template = InlineImage(doc, imagem, height=Mm(40))  # menor pra evitar 2 páginas
         else:
             imagem_template = ""
 
@@ -232,6 +346,20 @@ def gerar_pdf():
 
         pdf_path = docx_path.replace(".docx", ".pdf")
 
+        # SALVA NO BANCO (15 dias)
+        proposta = Proposta(
+            created_at=agora_utc(),
+            status="pendente",
+            cliente=cliente or "",
+            cpf=cpf or "",
+            modelo=modelo or "",
+            franquia=franquia or "",
+            valor=valor_final,
+            validade=validade or "",
+        )
+        db.add(proposta)
+        db.commit()
+
         nome_cliente = (cliente or "Cliente").replace(" ", "_")
         nome_final = f"Proposta_{nome_cliente}.pdf"
 
@@ -241,18 +369,46 @@ def gerar_pdf():
         return "Erro: confira o campo VALOR (ex: 250 ou 250,00)."
     except Exception as e:
         return f"Erro interno: {str(e)}"
+    finally:
+        db.close()
 
 
-# --------- CONTRATO (ETAPA 2) ----------
+# --------- CONTRATO ----------
 @app.route("/contrato")
 def contrato_form():
-    return render_template("contrato.html")
+    proposta_id = request.args.get("proposta_id")
+    prefill = {}
+
+    if proposta_id:
+        db = SessionLocal()
+        try:
+            limpar_propostas_antigas(db)
+            p = db.query(Proposta).filter(Proposta.id == int(proposta_id)).first()
+            if p:
+                # reaproveita o que existe na proposta
+                prefill = {
+                    "denominacao": p.cliente,
+                    "cpf_cnpj": p.cpf,
+                    "equipamento": p.modelo,
+                    "franquia_total": p.franquia,     # se você quiser manter só número, ajuste no formulário
+                    "valor_mensal": p.valor.split(" ")[0].strip() if p.valor else "",  # pega "250,00"
+                    "proposta_id": str(p.id),
+                }
+        finally:
+            db.close()
+
+    return render_template("contrato.html", prefill=prefill)
 
 
 @app.route("/gerar-contrato", methods=["POST"])
 def gerar_contrato():
+    db = SessionLocal()
     try:
+        limpar_propostas_antigas(db)
+
         doc = DocxTemplate(TEMPLATE_CONTRATO_PATH)
+
+        proposta_id = request.form.get("proposta_id")  # pode vir vazio
 
         denominacao = request.form.get("denominacao")
         cpf_cnpj = request.form.get("cpf_cnpj")
@@ -266,13 +422,15 @@ def gerar_contrato():
         data_inicio_input = request.form.get("data_inicio")
         data_termino_input = request.form.get("data_termino")
 
-        franquia_input = request.form.get("franquia_total")
-        valor_mensal_input = request.form.get("valor_mensal")
+        franquia_input = request.form.get("franquia_total")   # ex: 1000
+        valor_mensal_input = request.form.get("valor_mensal") # ex: 200
 
         data_inicio = data_por_extenso(data_inicio_input)
         data_termino = data_por_extenso(data_termino_input)
 
-        franquia_int = int(str(franquia_input).strip())
+        # franquia: aceita "1000" ou "1.000" (limpa pontos)
+        franquia_clean = str(franquia_input).replace(".", "").strip()
+        franquia_int = int(franquia_clean)
         franquia_formatada = numero_formatado_ptbr(franquia_int)
         franquia_extenso = numero_por_extenso_pt(franquia_int)
 
@@ -312,6 +470,35 @@ def gerar_contrato():
 
         pdf_path = docx_path.replace(".docx", ".pdf")
 
+        # salva contrato no banco (opcional, mas útil)
+        contrato = Contrato(
+            created_at=agora_utc(),
+            proposta_id=int(proposta_id) if proposta_id and proposta_id.isdigit() else None,
+            denominacao=denominacao or "",
+            cpf_cnpj=cpf_cnpj or "",
+            endereco=endereco or "",
+            telefone=telefone or "",
+            email=email or "",
+            equipamento=equipamento or "",
+            acessorios=acessorios or "",
+            data_inicio=data_inicio,
+            data_termino=data_termino,
+            franquia_formatada=franquia_formatada,
+            franquia_extenso=franquia_extenso,
+            valor_mensal_formatado=valor_mensal_formatado,
+            valor_mensal_extenso=valor_mensal_extenso,
+            data_assinatura=data_assinatura,
+        )
+        db.add(contrato)
+
+        # marca proposta como "contrato_gerado"
+        if proposta_id and proposta_id.isdigit():
+            p = db.query(Proposta).filter(Proposta.id == int(proposta_id)).first()
+            if p:
+                p.status = "contrato_gerado"
+
+        db.commit()
+
         nome_cliente = (denominacao or "Cliente").replace(" ", "_")
         nome_final = f"Contrato_{nome_cliente}.pdf"
 
@@ -321,6 +508,8 @@ def gerar_contrato():
         return "Erro: confira os campos numéricos (franquia e valor mensal) e as datas (DD/MM/AAAA)."
     except Exception as e:
         return f"Erro interno: {str(e)}"
+    finally:
+        db.close()
 
 
 if __name__ == "__main__":

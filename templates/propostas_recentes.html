@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Propostas recentes</title>
+  <style>
+    :root{
+      --bg0:#05070b;
+      --bg2:#0a0f18;
+      --line: rgba(255,255,255,.10);
+      --text:#ffffff;
+      --muted: rgba(255,255,255,.68);
+      --blue:#0a84ff;
+      --shadow: 0 22px 60px rgba(0,0,0,.55);
+      --radius: 18px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 75% 15%, rgba(10,132,255,.22), transparent 60%),
+        radial-gradient(900px 500px at 20% 20%, rgba(255,255,255,.06), transparent 55%),
+        linear-gradient(180deg, var(--bg2), var(--bg0));
+      min-height:100vh;
+    }
+    .top{
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 18px 18px 0;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .top a{ color: var(--muted); text-decoration:none; }
+    .top a:hover{ color: #fff; }
+    .wrap{
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 12px 18px 28px;
+    }
+    .panel{
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    h1{ margin:0 0 12px; font-size: 20px; }
+    table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+    }
+    th, td{
+      padding: 12px 10px;
+      text-align:left;
+      font-size: 13px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      vertical-align: top;
+    }
+    th{ color: var(--muted); font-weight: 600; background: rgba(255,255,255,.03); }
+    .tag{
+      display:inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border:1px solid rgba(10,132,255,.55);
+      background: #0a84ff;
+      color:#fff;
+      text-decoration:none;
+      font-size: 12px;
+      cursor:pointer;
+      margin-right: 8px;
+    }
+    .btn-danger{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color:#fff;
+    }
+    .btn:hover{ filter: brightness(1.05); }
+    .actions{ display:flex; gap:8px; flex-wrap:wrap; }
+    @media (max-width: 860px){
+      table, thead, tbody, th, td, tr{ display:block; }
+      thead{ display:none; }
+      tr{ border:1px solid rgba(255,255,255,.10); border-radius: 14px; margin-bottom: 10px; overflow:hidden; }
+      td{ border:none; border-bottom:1px solid rgba(255,255,255,.08); }
+      td:last-child{ border-bottom:none; }
+      td[data-label]:before{
+        content: attr(data-label);
+        display:block;
+        color: var(--muted);
+        font-size: 11px;
+        margin-bottom: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <a href="/">← Voltar</a>
+    <div class="tag">Expira automaticamente em 15 dias</div>
+  </div>
+
+  <main class="wrap">
+    <section class="panel">
+      <h1>Propostas recentes</h1>
+
+      {% if not propostas %}
+        <div class="tag">Nenhuma proposta salva nos últimos 15 dias.</div>
+      {% else %}
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>Modelo</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in propostas %}
+            <tr>
+              <td data-label="ID">{{ p.id }}</td>
+              <td data-label="Cliente">{{ p.cliente }}</td>
+              <td data-label="Modelo">{{ p.modelo }}</td>
+              <td data-label="Status"><span class="tag">{{ p.status }}</span></td>
+              <td data-label="Ações">
+                <div class="actions">
+                  <a class="btn" href="/contrato?proposta_id={{ p.id }}">Gerar contrato</a>
+                  <form method="post" action="/propostas-recentes/excluir/{{ p.id }}" style="display:inline;">
+                    <button class="btn btn-danger" type="submit">Excluir</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>

@@ -4,7 +4,6 @@ from docx.shared import Mm
 import os
 import subprocess
 from datetime import datetime
-import uuid
 from decimal import Decimal
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -28,55 +27,41 @@ def db_conn():
 
 
 def init_db():
-    conn = db_conn()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS propostas (
-            id TEXT PRIMARY KEY,
-            created_at TIMESTAMP NOT NULL,
-            status TEXT,
-            cliente TEXT,
-            cpf TEXT,
-            modelo TEXT,
-            franquia TEXT,
-            valor TEXT
-        )
-    """)
-    conn.commit()
-    conn.close()
+    # NÃO cria tabela porque você já criou manualmente
+    pass
 
 
 def cleanup_old_proposals(days=15):
     conn = db_conn()
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(f"""
         DELETE FROM propostas
-        WHERE created_at < NOW() - INTERVAL %s
-    """, (f"{days} days",))
+        WHERE created_at < NOW() - INTERVAL '{days} days'
+    """)
     conn.commit()
     conn.close()
 
 
 def save_proposta(cliente, cpf, modelo, franquia, valor):
-    proposal_id = str(uuid.uuid4())
     conn = db_conn()
     cur = conn.cursor()
+
+    # ⚠️ NÃO inserimos ID porque ele é SERIAL no banco
     cur.execute("""
         INSERT INTO propostas
-        (id, created_at, status, cliente, cpf, modelo, franquia, valor)
-        VALUES (%s, NOW(), %s, %s, %s, %s, %s, %s)
+        (created_at, status, cliente, cpf, modelo, franquia, valor)
+        VALUES (NOW(), %s, %s, %s, %s, %s, %s)
     """, (
-        proposal_id,
         "pendente",
         cliente,
         cpf,
         modelo,
         franquia,
-        valor,
+        valor
     ))
+
     conn.commit()
     conn.close()
-    return proposal_id
 
 
 def get_recent_proposals(limit=50):
@@ -174,8 +159,8 @@ def gerar_pdf():
 
         doc.render(context)
 
-        unique_id = str(uuid.uuid4())
-        docx_path = os.path.join(BASE_DIR, f"{unique_id}.docx")
+        unique_name = f"proposta_{datetime.now().timestamp()}"
+        docx_path = os.path.join(BASE_DIR, f"{unique_name}.docx")
         doc.save(docx_path)
 
         subprocess.run(
@@ -216,8 +201,8 @@ def gerar_contrato():
 
         doc.render(context)
 
-        unique_id = str(uuid.uuid4())
-        docx_path = os.path.join(BASE_DIR, f"{unique_id}.docx")
+        unique_name = f"contrato_{datetime.now().timestamp()}"
+        docx_path = os.path.join(BASE_DIR, f"{unique_name}.docx")
         doc.save(docx_path)
 
         subprocess.run(

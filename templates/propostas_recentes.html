@@ -4,142 +4,59 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Propostas recentes</title>
+  <link rel="stylesheet" href="/static/styles.css">
   <style>
-    :root{
-      --bg0:#05070b;
-      --bg2:#0a0f18;
-      --line: rgba(255,255,255,.10);
-      --text:#ffffff;
-      --muted: rgba(255,255,255,.68);
-      --blue:#0a84ff;
-      --shadow: 0 22px 60px rgba(0,0,0,.55);
-      --radius: 20px;
-    }
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-    body{
-      margin:0;
-      font-family: Arial, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(1200px 700px at 75% 15%, rgba(10,132,255,.22), transparent 60%),
-        radial-gradient(900px 500px at 20% 20%, rgba(255,255,255,.06), transparent 55%),
-        radial-gradient(800px 600px at 55% 70%, rgba(10,132,255,.10), transparent 60%),
-        linear-gradient(180deg, var(--bg2), var(--bg0));
-      overflow-x:hidden;
-    }
-    .bg-grid{
-      position: fixed;
-      inset: 0;
-      pointer-events:none;
-      opacity:.22;
-      background-image:
-        linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
-      background-size: 54px 54px;
-      mask-image: radial-gradient(900px 520px at 50% 20%, black 0%, transparent 65%);
-    }
-    .topbar{
-      position: sticky;
-      top:0;
-      z-index: 10;
-      background: rgba(5,7,11,.58);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--line);
-    }
-    .topbar-inner{
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 14px 18px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-    }
-    .logo{ display:flex; align-items:center; text-decoration:none; }
-    .logo img{
-      height:40px;
-      width:auto;
-      display:block;
-      filter: drop-shadow(0 10px 24px rgba(0,0,0,.55));
-    }
-    .nav{ display:flex; align-items:center; gap:8px; }
-    .nav a{
-      text-decoration:none;
-      color: rgba(255,255,255,.68);
-      font-size: 13px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid transparent;
-      transition: background .15s ease, border-color .15s ease, transform .12s ease, color .15s ease;
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-    }
-    .nav a:hover{
-      color: var(--text);
-      border-color: rgba(10,132,255,.35);
-      background: rgba(10,132,255,.10);
-      transform: translateY(-1px);
-    }
-
-    .wrap{
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 22px 18px 28px;
-    }
-
-    .panel{
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      box-shadow: var(--shadow);
-      padding: 18px;
-    }
-
-    h1{ margin:0; font-size: 26px; }
-    p.sub{ margin:8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
-
+    /* extras só dessa tela */
     .list{
       margin-top: 14px;
       display:grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      gap: 14px;
     }
-    @media (max-width: 860px){
-      .list{ grid-template-columns: 1fr; }
-    }
+    @media (max-width: 860px){ .list{ grid-template-columns: 1fr; } }
 
-    .card{
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 18px;
-      padding: 14px;
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top: 10px;
     }
-    .title{ font-size: 15px; font-weight: 700; }
-    .meta{ margin-top: 6px; color: rgba(255,255,255,.65); font-size: 12px; line-height: 1.45; }
-
-    .actions{ margin-top: 10px; display:flex; gap: 10px; flex-wrap: wrap; }
-    .btn{
-      display:inline-flex;
+    .pill{
+      font-size: 12px; color: rgba(255,255,255,.78);
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.28);
+      white-space:nowrap;
+    }
+    .small{
+      margin-top: 8px;
+      color: rgba(255,255,255,.58);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
       align-items:center;
-      justify-content:center;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(10,132,255,.55);
-      background: #0a84ff;
-      color: var(--text);
-      text-decoration:none;
-      font-size: 13px;
-      cursor:pointer;
-      min-width: 180px;
-      transition: transform .10s ease, filter .15s ease;
-      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+      margin-top: 12px;
     }
-    .btn:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+    .btn-ghost{
+      background: rgba(255,255,255,.04);
+      border-color: rgba(255,255,255,.16);
+      min-width: 190px;
+    }
+    .empty{
+      margin-top: 14px;
+      padding: 18px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      color: rgba(255,255,255,.70);
+    }
   </style>
 </head>
-
 <body>
   <div class="bg-grid"></div>
 
@@ -155,31 +72,62 @@
   </header>
 
   <main class="wrap">
-    <section class="panel">
+    <div class="page-title">
       <h1>Propostas recentes</h1>
-      <p class="sub">As propostas ficam salvas por 15 dias e depois são apagadas automaticamente.</p>
+      <a class="backlink" href="/">← Voltar</a>
+    </div>
 
-      {% if not propostas %}
-        <p class="sub" style="margin-top:14px;">Nenhuma proposta salva ainda.</p>
-      {% else %}
-        <div class="list">
-          {% for p in propostas %}
-            <div class="card">
-              <div class="title">{{ p["cliente"] or "Sem nome" }}</div>
-              <div class="meta">
-                CPF: {{ p["cpf"] or "-" }}<br>
-                Modelo: {{ p["modelo"] or "-" }} • Franquia: {{ p["franquia"] or "-" }}<br>
-                Criada em: {{ p["created_at"] }}
-              </div>
+    <div class="headline" style="margin-bottom:14px;">
+      <h1 style="font-size:22px; margin:0;">15 dias de histórico</h1>
+      <p style="margin:8px 0 0;">
+        Aqui ficam suas propostas salvas por 15 dias.  
+        Clique em <b>Gerar contrato</b> para abrir o contrato já preenchido com o que der.
+      </p>
+    </div>
 
-              <div class="actions">
-                <a class="btn" href="/contrato?from={{ p['id'] }}">GERAR CONTRATO</a>
+    {% if propostas and propostas|length > 0 %}
+      <section class="list">
+        {% for p in propostas %}
+          <article class="card card-hover">
+            <div class="card-top">
+              <div class="title">
+                <div class="icon">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M7 3h7l3 3v15a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/>
+                    <path d="M14 3v4h4" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 style="margin:0;">{{ p.cliente or "Cliente" }}</h2>
+                  <div class="small">Criada em: {{ p.criada_em or "-" }}</div>
+                </div>
               </div>
+              <div class="chip">Proposta</div>
             </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    </section>
+
+            <div class="meta">
+              {% if p.cpf %}<span class="pill">CPF: {{ p.cpf }}</span>{% endif %}
+              {% if p.modelo %}<span class="pill">Modelo: {{ p.modelo }}</span>{% endif %}
+              {% if p.franquia %}<span class="pill">Franquia: {{ p.franquia }}</span>{% endif %}
+              {% if p.valor %}<span class="pill">Valor: {{ p.valor }}</span>{% endif %}
+              {% if p.validade %}<span class="pill">Validade: {{ p.validade }}</span>{% endif %}
+            </div>
+
+            <div class="row">
+              <!-- abre o contrato com dados reaproveitados -->
+              <a class="btn btn-primary" href="/contrato?from={{ p.id }}">GERAR CONTRATO</a>
+
+              <!-- opcional: gerar de novo a proposta PDF (se você já tiver rota) -->
+              <a class="btn btn-ghost" href="/proposta?from={{ p.id }}">ABRIR PROPOSTA</a>
+            </div>
+          </article>
+        {% endfor %}
+      </section>
+    {% else %}
+      <div class="empty">
+        Nenhuma proposta salva ainda. Crie uma proposta e ela vai aparecer aqui por 15 dias.
+      </div>
+    {% endif %}
   </main>
 </body>
 </html>

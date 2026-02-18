@@ -1,38 +1,280 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-  <title>Gerar Contrato</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Criar Contrato</title>
   <style>
-    body { background:#000; color:white; font-family:Arial; padding:40px; }
-    input,button,textarea { padding:10px; margin:5px; width:100%; box-sizing:border-box; }
-    button { background:#0a84ff; color:white; border:none; cursor:pointer; }
-    textarea { min-height: 80px; }
-    a { color:#0a84ff; text-decoration:none; }
+    :root{
+      --bg0:#05070b;
+      --bg2:#0a0f18;
+      --line: rgba(255,255,255,.10);
+      --text:#ffffff;
+      --muted: rgba(255,255,255,.68);
+      --blue:#0a84ff;
+      --shadow: 0 22px 60px rgba(0,0,0,.55);
+      --radius: 20px;
+      --field: rgba(255,255,255,.04);
+      --field2: rgba(255,255,255,.02);
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 75% 15%, rgba(10,132,255,.22), transparent 60%),
+        radial-gradient(900px 500px at 20% 20%, rgba(255,255,255,.06), transparent 55%),
+        radial-gradient(800px 600px at 55% 70%, rgba(10,132,255,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg2), var(--bg0));
+      overflow-x:hidden;
+    }
+    .bg-grid{
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      opacity:.22;
+      background-image:
+        linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+      background-size: 54px 54px;
+      mask-image: radial-gradient(900px 520px at 50% 20%, black 0%, transparent 65%);
+    }
+    .topbar{
+      position: sticky;
+      top:0;
+      z-index: 10;
+      background: rgba(5,7,11,.58);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-inner{
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 14px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .logo{ display:flex; align-items:center; text-decoration:none; }
+    .logo img{
+      height:40px;
+      width:auto;
+      display:block;
+      filter: drop-shadow(0 10px 24px rgba(0,0,0,.55));
+    }
+    .nav{ display:flex; align-items:center; gap:8px; }
+    .nav a{
+      text-decoration:none;
+      color: rgba(255,255,255,.68);
+      font-size: 13px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      transition: background .15s ease, border-color .15s ease, transform .12s ease, color .15s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+    }
+    .nav a:hover{
+      color: var(--text);
+      border-color: rgba(10,132,255,.35);
+      background: rgba(10,132,255,.10);
+      transform: translateY(-1px);
+    }
+
+    .wrap{
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 22px 18px 28px;
+    }
+
+    .panel{
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    h1{ margin:0; font-size: 26px; }
+    p.sub{ margin:8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+    form{ margin-top: 16px; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 12px;
+    }
+    @media (max-width: 860px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, var(--field), var(--field2));
+    }
+
+    label{
+      font-size: 12px;
+      color: rgba(255,255,255,.75);
+    }
+
+    input, textarea{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+    }
+    input::placeholder, textarea::placeholder{ color: rgba(255,255,255,.40); }
+    textarea{ min-height: 92px; resize: vertical; }
+
+    .actions{
+      margin-top: 14px;
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(10,132,255,.55);
+      background: #0a84ff;
+      color: var(--text);
+      text-decoration:none;
+      font-size: 13px;
+      cursor:pointer;
+      min-width: 210px;
+      transition: transform .10s ease, filter .15s ease;
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+    }
+    .btn:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+
+    .btn-ghost{
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.14);
+      min-width: 140px;
+    }
+
+    .hint{
+      margin-top: 10px;
+      color: rgba(255,255,255,.55);
+      font-size: 12px;
+      line-height: 1.45;
+    }
   </style>
 </head>
+
 <body>
+  <div class="bg-grid"></div>
 
-  <h1>Gerar Contrato</h1>
-  <p><a href="/">← Voltar</a></p>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="logo" href="/"><img src="/static/logo.png" alt="Logo"></a>
+      <nav class="nav">
+        <a href="/proposta">Proposta</a>
+        <a href="/contrato">Contrato</a>
+        <a href="/propostas-recentes">Propostas recentes</a>
+      </nav>
+    </div>
+  </header>
 
-  <form method="post" action="/gerar-contrato">
-    <input name="denominacao" placeholder="DENOMINAÇÃO" required value="{{ (prefill.get('denominacao') if prefill else '') }}">
-    <input name="cpf_cnpj" placeholder="CPF/CNPJ" required value="{{ (prefill.get('cpf_cnpj') if prefill else '') }}">
-    <input name="endereco" placeholder="ENDEREÇO" required>
-    <input name="telefone" placeholder="TELEFONE" required>
-    <input name="email" placeholder="EMAIL" required>
+  <main class="wrap">
+    <section class="panel">
+      <h1>Criar Contrato</h1>
+      <p class="sub">
+        Se você entrou pelo botão “Gerar contrato” em Propostas recentes, alguns campos já vêm preenchidos automaticamente.
+      </p>
 
-    <input name="equipamento" placeholder="EQUIPAMENTO" required>
-    <textarea name="acessorios" placeholder="ACESSÓRIOS QUE ACOMPANHAM" required></textarea>
+      <form method="post" action="/gerar-contrato">
+        <div class="grid">
+          <div class="field">
+            <label>Denominação</label>
+            <input name="denominacao" placeholder="Ex: Empresa / Cliente" required
+                   value="{{ prefill['cliente'] if prefill else '' }}">
+          </div>
 
-    <input name="data_inicio" placeholder="DATA INÍCIO (DD/MM/AAAA)" required>
-    <input name="data_termino" placeholder="DATA TÉRMINO (DD/MM/AAAA)" required>
+          <div class="field">
+            <label>CPF/CNPJ</label>
+            <input name="cpf_cnpj" placeholder="Ex: 000.000.000-00" required
+                   value="{{ prefill['cpf'] if prefill else '' }}">
+          </div>
 
-    <input name="franquia_total" placeholder="FRANQUIA TOTAL (ex: 1000)" required>
-    <input name="valor_mensal" placeholder="VALOR MENSAL (ex: 200 ou 200,00)" required>
+          <div class="field">
+            <label>Endereço</label>
+            <input name="endereco" placeholder="Rua, número, bairro, cidade" required>
+          </div>
 
-    <button type="submit">GERAR PDF</button>
-  </form>
+          <div class="field">
+            <label>Telefone</label>
+            <input name="telefone" placeholder="(00) 00000-0000" required>
+          </div>
 
+          <div class="field">
+            <label>E-mail</label>
+            <input name="email" placeholder="email@exemplo.com" required>
+          </div>
+
+          <div class="field">
+            <label>Equipamento</label>
+            <input name="equipamento" placeholder="Modelo do equipamento" required
+                   value="{{ prefill['modelo'] if prefill else '' }}">
+          </div>
+
+          <div class="field" style="grid-column: 1 / -1;">
+            <label>Acessórios que acompanham</label>
+            <textarea name="acessorios" placeholder="Ex: cabo de energia, cabo USB..." required></textarea>
+          </div>
+
+          <div class="field">
+            <label>Data início (DD/MM/AAAA)</label>
+            <input name="data_inicio" placeholder="11/02/2026" required>
+          </div>
+
+          <div class="field">
+            <label>Data término (DD/MM/AAAA)</label>
+            <input name="data_termino" placeholder="11/02/2027" required>
+          </div>
+
+          <div class="field">
+            <label>Franquia total (ex: 1000)</label>
+            <input name="franquia_total" placeholder="1000" required
+                   value="{{ prefill['franquia'] if prefill else '' }}">
+          </div>
+
+          <div class="field">
+            <label>Valor mensal (ex: 200 ou 200,00)</label>
+            <input name="valor_mensal" placeholder="200" required
+                   value="{{ prefill['valor_input'] if prefill else '' }}">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" type="submit">GERAR PDF</button>
+          <a class="btn btn-ghost" href="/">Voltar</a>
+        </div>
+
+        <div class="hint">
+          Dica: Datas sempre no formato <b>DD/MM/AAAA</b>. Ex: 11/02/2026.
+        </div>
+      </form>
+    </section>
+  </main>
 </body>
 </html>

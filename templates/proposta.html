@@ -3,239 +3,88 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Proposta</title>
-  <style>
-    :root{
-      --bg0:#05070b;
-      --bg2:#0a0f18;
-      --line: rgba(255,255,255,.10);
-      --text:#ffffff;
-      --muted: rgba(255,255,255,.68);
-      --blue:#0a84ff;
-      --shadow: 0 22px 60px rgba(0,0,0,.55);
-      --radius: 20px;
-    }
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      font-family: Arial, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(1200px 700px at 75% 15%, rgba(10,132,255,.22), transparent 60%),
-        radial-gradient(900px 500px at 20% 20%, rgba(255,255,255,.06), transparent 55%),
-        linear-gradient(180deg, var(--bg2), var(--bg0));
-      min-height:100vh;
-    }
-
-    .topbar{
-      position: sticky;
-      top:0;
-      z-index: 10;
-      background: rgba(5,7,11,.58);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--line);
-    }
-    .topbar-inner{
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 14px 18px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-    }
-    .logo img{ height:38px; display:block; }
-    .logo{ text-decoration:none; display:flex; align-items:center; }
-
-    .nav{ display:flex; gap:8px; align-items:center; }
-    .nav a{
-      text-decoration:none;
-      color: var(--muted);
-      font-size: 13px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border:1px solid transparent;
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      transition: background .15s ease, border-color .15s ease, transform .12s ease, color .15s ease;
-    }
-    .nav a:hover{
-      color: var(--text);
-      border-color: rgba(10,132,255,.35);
-      background: rgba(10,132,255,.10);
-      transform: translateY(-1px);
-    }
-
-    .wrap{ max-width: 980px; margin: 0 auto; padding: 22px 18px 28px; }
-
-    .panel{
-      border:1px solid var(--line);
-      border-radius: var(--radius);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      box-shadow: var(--shadow);
-      padding: 18px;
-    }
-
-    .header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 12px; }
-    .header h1{ margin:0; font-size: 20px; }
-
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 10px;
-    }
-    @media (max-width: 760px){
-      .grid{ grid-template-columns: 1fr; }
-      .header{ flex-direction:column; align-items:flex-start; }
-    }
-
-    label{ display:block; font-size:12px; color: var(--muted); margin: 10px 0 6px; }
-    input{
-      width:100%;
-      padding: 12px 12px;
-      border-radius: 14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      outline:none;
-    }
-    input::placeholder{ color: rgba(255,255,255,.45); }
-    input:focus{
-      border-color: rgba(10,132,255,.55);
-      box-shadow: 0 0 0 4px rgba(10,132,255,.12);
-    }
-
-    .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; align-items:center; }
-
-    button{
-      padding: 12px 14px;
-      border-radius: 14px;
-      border:1px solid rgba(10,132,255,.55);
-      background:#0a84ff;
-      color:white;
-      cursor:pointer;
-      font-size: 13px;
-      min-width: 180px;
-      box-shadow: 0 18px 40px rgba(0,0,0,.35);
-      transition: transform .10s ease, filter .15s ease;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-    }
-    button:hover{ filter: brightness(1.05); transform: translateY(-1px); }
-    button:active{ transform: translateY(0); }
-    button[disabled]{ opacity:.75; cursor:not-allowed; transform:none; }
-
-    .btn-secondary{
-      padding: 12px 14px;
-      border-radius: 14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color:white;
-      text-decoration:none;
-      font-size: 13px;
-      min-width: 140px;
-      text-align:center;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-    }
-    .btn-secondary:hover{
-      border-color: rgba(10,132,255,.35);
-      background: rgba(10,132,255,.10);
-    }
-
-    /* spinner */
-    .spinner{
-      width:16px;height:16px;
-      border:2px solid rgba(255,255,255,.55);
-      border-top-color: rgba(255,255,255,.15);
-      border-radius:999px;
-      animation: spin .8s linear infinite;
-      display:none;
-    }
-    @keyframes spin{ to{ transform: rotate(360deg); } }
-  </style>
+  <title>Gerar Proposta</title>
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
+  <div class="bg-grid"></div>
 
   <header class="topbar">
     <div class="topbar-inner">
       <a class="logo" href="/"><img src="/static/logo.png" alt="Logo"></a>
       <nav class="nav">
-        <a href="/">Início</a>
-        <a href="/propostas-recentes">Propostas recentes</a>
+        <a href="/proposta">Proposta</a>
         <a href="/contrato">Contrato</a>
+        <a href="/propostas-recentes">Propostas recentes</a>
       </nav>
     </div>
   </header>
 
   <main class="wrap">
-    <section class="panel">
-      <div class="header">
-        <h1>Proposta</h1>
+    <div class="page-title">
+      <h1>Gerar Proposta</h1>
+      <a class="backlink" href="/">← Voltar</a>
+    </div>
+
+    <form class="form" action="/gerar-pdf" method="POST" enctype="multipart/form-data" id="formProposta">
+      <div class="form-grid">
+        <div class="field span-2">
+          <label>Cliente</label>
+          <input class="input" name="cliente" required placeholder="Nome do cliente">
+        </div>
+
+        <div class="field">
+          <label>CPF</label>
+          <input class="input" name="cpf" required placeholder="000.000.000-00">
+        </div>
+
+        <div class="field">
+          <label>Modelo</label>
+          <input class="input" name="modelo" required placeholder="Ex: Canon / Epson / etc">
+        </div>
+
+        <div class="field">
+          <label>Franquia</label>
+          <input class="input" name="franquia" required placeholder="Ex: 1000">
+        </div>
+
+        <div class="field">
+          <label>Investimento total</label>
+          <input class="input" name="valor" required placeholder="Ex: 250 ou 250,00">
+        </div>
+
+        <div class="field span-2">
+          <label>Validade</label>
+          <input class="input" name="validade" required placeholder="Ex: 7 dias">
+        </div>
+
+        <div class="field span-2">
+          <label>Imagem (opcional)</label>
+          <input class="input" type="file" name="imagem" accept="image/*">
+        </div>
       </div>
 
-      <form id="formProposta" method="post" action="/gerar-pdf" enctype="multipart/form-data">
-        <div class="grid">
-          <div>
-            <label>Cliente</label>
-            <input name="cliente" placeholder="Nome do cliente" required>
-          </div>
-          <div>
-            <label>CPF</label>
-            <input name="cpf" placeholder="CPF do cliente" required>
-          </div>
-          <div>
-            <label>Modelo</label>
-            <input name="modelo" placeholder="Modelo da impressora" required>
-          </div>
-          <div>
-            <label>Franquia</label>
-            <input name="franquia" placeholder="Ex: 1000" required>
-          </div>
-          <div>
-            <label>Investimento mensal</label>
-            <input name="valor" placeholder="Ex: 250" required>
-          </div>
-          <div>
-            <label>Validade</label>
-            <input name="validade" placeholder="Ex: 7 dias" required>
-          </div>
-        </div>
-
-        <div style="margin-top:10px;">
-          <label>Imagem (opcional)</label>
-          <input type="file" name="imagem" accept="image/*">
-        </div>
-
-        <div class="actions">
-          <button id="btnGerar" type="submit">
-            <span id="btnText">GERAR PDF</span>
-            <span id="spin" class="spinner"></span>
-          </button>
-
-          <a class="btn-secondary" href="/">Voltar</a>
-        </div>
-      </form>
-    </section>
+      <div class="actions">
+        <button class="btn btn-primary" type="submit" id="btnProposta">
+          <span id="txtProposta">GERAR PDF</span>
+        </button>
+        <div class="hint">Ao clicar, o PDF será gerado e baixado automaticamente.</div>
+      </div>
+    </form>
   </main>
 
   <script>
     const form = document.getElementById("formProposta");
-    const btn = document.getElementById("btnGerar");
-    const txt = document.getElementById("btnText");
-    const spin = document.getElementById("spin");
+    const btn = document.getElementById("btnProposta");
+    const txt = document.getElementById("txtProposta");
 
     form.addEventListener("submit", () => {
       btn.disabled = true;
-      txt.textContent = "Gerando...";
-      spin.style.display = "inline-block";
+      txt.textContent = "GERANDO...";
+      const sp = document.createElement("span");
+      sp.className = "spinner";
+      btn.prepend(sp);
     });
   </script>
-
 </body>
 </html>
